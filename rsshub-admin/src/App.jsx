@@ -74,9 +74,10 @@ function ProxyManager({ onReady }) {
 
   useEffect(() => {
     Promise.all([
-      fetch('api/nodes').then(r => r.json()).then(d => { setNodes(d.nodes || []); setLoading(false); }),
+      fetch('api/nodes').then(r => r.json()).then(d => { setNodes(d.nodes || []); }),
       fetch('api/bypass').then(r => r.json()).then(d => setBypassText(d.content || ''))
     ]).then(() => {
+      setLoading(false);
       if (onReady) onReady();
     });
   }, []);
@@ -145,7 +146,7 @@ function ProxyManager({ onReady }) {
   };
 
   return (
-    <div>
+    <div className={`tab-content ${loading ? '' : 'loaded'}`}>
       <div className="page-header">
         <h2 className="page-title">{t("Proxy Nodes", "代理节点")}</h2>
       </div>
@@ -162,7 +163,7 @@ function ProxyManager({ onReady }) {
           <button style={{background: 'transparent', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '15px'}} onClick={addNode}>{t("+ Add Node", "+ 添加节点")}</button>
         </div>
         
-        {loading ? <div className="settings-row">{t("Loading...", "加载中...")}</div> : nodes.length === 0 ? <div className="settings-row">{t("No nodes found.", "暂无代理节点配置")}</div> : (
+        {nodes.length === 0 ? <div className="settings-row">{t("No nodes found.", "暂无代理节点配置")}</div> : (
           <div>
             {nodes.map((n, i) => (
               <div key={i} style={{ borderBottom: i === nodes.length - 1 ? 'none' : '0.5px solid var(--border-color)' }}>
@@ -252,9 +253,10 @@ function CookieCloudManager() {
   const [config, setConfig] = useState({ server: '', uuid: '', password: '', bilibiliUid: '', youtubeKey: '' });
   const [logs, setLogs] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('api/cookiecloud').then(r => r.json()).then(setConfig);
+    fetch('api/cookiecloud').then(r => r.json()).then(d => { setConfig(d); setLoading(false); });
     fetchLogs();
     const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
@@ -278,7 +280,7 @@ function CookieCloudManager() {
   };
 
   return (
-    <div>
+    <div className={`tab-content ${loading ? '' : 'loaded'}`}>
       <div className="page-header">
         <h2 className="page-title">CookieCloud</h2>
       </div>
@@ -325,11 +327,13 @@ function RsshubConfigManager() {
   const [md5Hash, setMd5Hash] = useState('');
   const [saving, setSaving] = useState(false);
   const [restarting, setRestarting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('api/rsshub/config').then(r => r.json()).then(d => {
       setAccessKey(d.accessKey || '');
       setMd5Hash(d.md5 || '');
+      setLoading(false);
     });
   }, []);
 
@@ -360,7 +364,7 @@ function RsshubConfigManager() {
   };
 
   return (
-    <div>
+    <div className={`tab-content ${loading ? '' : 'loaded'}`}>
       <div className="page-header">
         <h2 className="page-title">{t("RSSHub Configuration", "RSSHub 配置")}</h2>
       </div>

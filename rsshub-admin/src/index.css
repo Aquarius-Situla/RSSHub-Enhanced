@@ -246,3 +246,15 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+/* Tab Content Fade In */
+.tab-content {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.tab-content.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
