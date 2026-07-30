@@ -22,13 +22,12 @@ services:
     ports:
       - "127.0.0.1:1200:1200"
     env_file:
+      - .env
       - rsshub.env
     environment:
       - CHROMIUM_ENDPOINT=http://browserless:3000
       - PUPPETEER_WS_ENDPOINT=ws://browserless:3000
       - PUPPETEER_WAIT_UNTIL=networkidle2
-      - ACCESS_KEY=your_access_key_here
-      - YOUTUBE_KEY=your_youtube_api_key_here
       - REDIS_URL=redis://redis:6379/0
       - PROXY_URL=http://gost:8888 
       - PROXY_STRATEGY=all
