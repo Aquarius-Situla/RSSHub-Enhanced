@@ -70,7 +70,10 @@ The **"Upload"** feature in the panel allows you to bulk load your Gost node poo
 
 ## 🌐 Nginx Proxy Manager (NPM) Setup Guide
 
-Since RSSHub needs to be public for RSS readers, while the `/admin` panel controls your private nodes and cookies, **we must NOT lock down the entire domain**. To achieve **"Protecting only the /admin panel"**, please paste the following Nginx routing code block into the **Advanced** tab of your NPM proxy configuration:
+Since RSSHub needs to be public for RSS readers, while the `/admin` panel controls your private nodes and cookies, **we must NOT lock down the entire domain**. To achieve **"Protecting only the /admin panel"**, please paste the appropriate Nginx routing code block into the **Advanced** tab of your NPM proxy configuration, depending on your authentication method:
+
+### Option A: Use NPM Built-in Basic Auth
+Ideal for most individual users looking for a simple setup:
 
 ```nginx
 # Proxy RSSHub core service (Public by default)
@@ -81,12 +84,12 @@ location / {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 
-# Proxy the Admin Panel and enable situla-auth password protection
+# Proxy the Admin Panel and enable basic password protection
 location ^~ /admin/ {
-    # Enable Basic Auth named situla-auth
-    auth_basic "situla-auth";
+    # Enable Basic Auth named RSSHub-Admin
+    auth_basic "RSSHub-Admin";
     
-    # Path to the password file. Please create an Access List in the NPM panel first, or generate a .htpasswd file.
+    # Path to the password file. Please create an Access List in the NPM panel first.
     # Example: auth_basic_user_file /data/access/1; (where 1 is the Access List ID in NPM)
     auth_basic_user_file /data/access/your_auth_file;
     
@@ -97,7 +100,46 @@ location ^~ /admin/ {
 }
 ```
 
-> **Note**: Please replace `your_auth_file` above with your actual path. If you are using NPM's built-in Access List, it is usually saved under `/data/access/NumberID`.
+### Option B: Use situla-auth (SSO) Centralized Authentication
+Ideal for advanced users who deploy a `situla-auth` container for global single sign-on:
+
+```nginx
+# 1. Define internal route: forward authentication requests to situla-auth container
+location = /_auth {
+    internal;
+    # Access directly via container name and internal port within the npm_default network
+    proxy_pass http://situla-auth:3000/verify;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header X-Original-URI $request_uri;
+}
+
+# 2. Handle 401 Unauthorized: intercept and redirect to unified login page
+error_page 401 = @error401;
+location @error401 {
+    # Replace auth.example.com with your actual situla-auth login domain
+    return 302 https://auth.example.com/?rd=https://$http_host$request_uri;
+}
+
+# 3. Proxy RSSHub core service (Public by default)
+location / {
+    proxy_pass http://rsshub:1200/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 4. Proxy the Admin Panel and enable situla-auth interception check
+location ^~ /admin/ {
+    # Enable request authentication (unified verification via /_auth)
+    auth_request /_auth;
+    
+    proxy_pass http://rsshub-admin:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
 
 ---
 

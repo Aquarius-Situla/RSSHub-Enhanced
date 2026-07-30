@@ -70,7 +70,10 @@ cp .env.example .env
 
 ## 🌐 Nginx Proxy Manager (NPM) 配置指南
 
-由于 RSSHub 需要对外公开给阅读器，而 `/admin` 面板直接控制您的隐私节点和 Cookie，因此我们**绝不能直接把整个域名锁死**。为了实现**“只保护 /admin 面板”**，请在 NPM 代理配置的 **Advanced (高级)** 选项卡中，填入以下 Nginx 官方路由鉴权代码块：
+由于 RSSHub 需要对外公开给阅读器，而 `/admin` 面板直接控制您的隐私节点和 Cookie，因此我们**绝不能直接把整个域名锁死**。为了实现**“只保护 /admin 面板”**，请在 NPM 代理配置的 **Advanced (高级)** 选项卡中，根据您的鉴权方式填入以下相应的 Nginx 官方路由代码块：
+
+### 方案 A：使用 NPM 内置密码本 (Basic Auth) 保护
+适合绝大多数个人用户的极简方案：
 
 ```nginx
 # 代理 RSSHub 核心服务（默认全网公开）
@@ -81,12 +84,12 @@ location / {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 
-# 代理管理面板并启用 situla-auth 密码保护
+# 代理管理面板并启用基础密码保护
 location ^~ /admin/ {
-    # 启用名为 situla-auth 的 Basic Auth 基础认证
-    auth_basic "situla-auth";
+    # 启用名为 RSSHub-Admin 的基础认证
+    auth_basic "RSSHub-Admin";
     
-    # 密码文件路径。请先在 NPM 面板创建好一个 Access List，或者自己生成一个 .htpasswd 文件
+    # 密码文件路径。请先在 NPM 面板创建好一个 Access List。
     # 例如：auth_basic_user_file /data/access/1; (其中 1 是 NPM 里 Access List 的 ID)
     auth_basic_user_file /data/access/your_auth_file;
     
@@ -97,7 +100,46 @@ location ^~ /admin/ {
 }
 ```
 
-> **注意**：上面的 `your_auth_file` 请替换为您自己的真实路径，如果您用的是 NPM 自带的 Access List，它通常保存在 `/data/access/数字ID`。
+### 方案 B：使用 situla-auth (SSO) 统一鉴权保护
+适合部署了 `situla-auth` 容器，希望实现全局单点登录的高阶用户：
+
+```nginx
+# 1. 定义内部路由：转发鉴权请求至 situla-auth 容器
+location = /_auth {
+    internal;
+    # 在同属 npm_default 网络下，通过容器名及内部端口直接访问
+    proxy_pass http://situla-auth:3000/verify;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header X-Original-URI $request_uri;
+}
+
+# 2. 配置 401 未授权处理：拦截并重定向至统一登录页
+error_page 401 = @error401;
+location @error401 {
+    # 请将 auth.example.com 替换为您真实的 situla-auth 登录域名
+    return 302 https://auth.example.com/?rd=https://$http_host$request_uri;
+}
+
+# 3. 代理 RSSHub 核心服务（默认全网公开）
+location / {
+    proxy_pass http://rsshub:1200/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 4. 代理管理面板并启用 situla-auth 拦截校验
+location ^~ /admin/ {
+    # 开启请求鉴权（统一经由 /_auth 校验）
+    auth_request /_auth;
+    
+    proxy_pass http://rsshub-admin:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
 
 ---
 
