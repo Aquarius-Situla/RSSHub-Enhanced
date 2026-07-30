@@ -12,9 +12,23 @@ function App() {
   const [lang] = useState(() => {
     return (navigator.language || navigator.userLanguage || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
   });
+  
+  const [isReady, setIsReady] = useState(false);
+  const [minTimePassed, setMinTimePassed] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMinTimePassed(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const showSplash = !(isReady && minTimePassed);
 
   return (
     <LangContext.Provider value={{lang}}>
+      <div className={`splash-screen ${showSplash ? '' : 'fade-out'}`}>
+        <div className="splash-spinner"></div>
+        <div className="splash-text">RSSHub Admin</div>
+      </div>
       <div className="app-container">
         <div className="sidebar">
           <h1>{lang === 'zh' ? 'RSSHub 管理' : 'RSSHub Admin'}</h1>
@@ -42,7 +56,7 @@ function App() {
         </div>
         
         <div className="main-content">
-          {activeTab === 'proxies' && <ProxyManager />}
+          {activeTab === 'proxies' && <ProxyManager onReady={() => setIsReady(true)} />}
           {activeTab === 'cookiecloud' && <CookieCloudManager />}
           {activeTab === 'rsshub' && <RsshubConfigManager />}
         </div>
@@ -51,7 +65,7 @@ function App() {
   );
 }
 
-function ProxyManager() {
+function ProxyManager({ onReady }) {
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bypassText, setBypassText] = useState('');
@@ -59,8 +73,12 @@ function ProxyManager() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch('api/nodes').then(r => r.json()).then(d => { setNodes(d.nodes || []); setLoading(false); });
-    fetch('api/bypass').then(r => r.json()).then(d => setBypassText(d.content || ''));
+    Promise.all([
+      fetch('api/nodes').then(r => r.json()).then(d => { setNodes(d.nodes || []); setLoading(false); }),
+      fetch('api/bypass').then(r => r.json()).then(d => setBypassText(d.content || ''))
+    ]).then(() => {
+      if (onReady) onReady();
+    });
   }, []);
 
   const t = useLang();
