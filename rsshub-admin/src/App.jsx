@@ -59,8 +59,8 @@ function ProxyManager() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch('/api/nodes').then(r => r.json()).then(d => { setNodes(d.nodes || []); setLoading(false); });
-    fetch('/api/bypass').then(r => r.json()).then(d => setBypassText(d.content || ''));
+    fetch('api/nodes').then(r => r.json()).then(d => { setNodes(d.nodes || []); setLoading(false); });
+    fetch('api/bypass').then(r => r.json()).then(d => setBypassText(d.content || ''));
   }, []);
 
   const t = useLang();
@@ -82,7 +82,7 @@ function ProxyManager() {
         }));
         
         if (window.confirm(t(`Import ${structured.length} nodes?`, `确定导入 ${structured.length} 个节点吗？`))) {
-          await fetch('/api/nodes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({nodes: structured})});
+          await fetch('api/nodes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({nodes: structured})});
           setNodes(structured);
           alert(t("Nodes updated!", "节点已更新！"));
         }
@@ -95,8 +95,8 @@ function ProxyManager() {
   const handleRestart = async () => {
     if (!window.confirm(t("Apply changes and restart Gost container?", "是否确认保存配置并重启 Gost 代理服务？"))) return;
     try {
-      await fetch('/api/nodes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({nodes})});
-      await fetch('/api/restart', { method: 'POST' });
+      await fetch('api/nodes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({nodes})});
+      await fetch('api/restart', { method: 'POST' });
       alert(t("Gost proxy updated and restarted successfully", "Gost 代理配置已生效并成功重启"));
     } catch (err) {
       alert(t("Failed to update and restart Gost", "更新并重启 Gost 失败"));
@@ -104,7 +104,7 @@ function ProxyManager() {
   };
   
   const saveBypass = async () => {
-    await fetch('/api/bypass', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: bypassText})});
+    await fetch('api/bypass', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({content: bypassText})});
     alert(t("bypass.txt Saved!", "bypass.txt 已保存！"));
   };
   
@@ -236,25 +236,25 @@ function CookieCloudManager() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
-    fetch('/api/cookiecloud').then(r => r.json()).then(setConfig);
+    fetch('api/cookiecloud').then(r => r.json()).then(setConfig);
     fetchLogs();
     const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchLogs = () => {
-    fetch('/api/cookiecloud/logs').then(r => r.json()).then(d => setLogs(d.logs));
+    fetch('api/cookiecloud/logs').then(r => r.json()).then(d => setLogs(d.logs));
   };
 
   const saveConfig = async () => {
-    await fetch('/api/cookiecloud', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(config) });
+    await fetch('api/cookiecloud', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(config) });
     alert(t("Saved", "已保存"));
   };
 
   const handleSync = async () => {
     if (!window.confirm(t("Run decrypt script and restart RSSHub?", "执行解密脚本并重启 RSSHub？"))) return;
     setSyncing(true);
-    await fetch('/api/cookiecloud/sync', { method: 'POST' });
+    await fetch('api/cookiecloud/sync', { method: 'POST' });
     setSyncing(false);
     fetchLogs();
   };
@@ -309,7 +309,7 @@ function RsshubConfigManager() {
   const [restarting, setRestarting] = useState(false);
 
   useEffect(() => {
-    fetch('/api/rsshub/config').then(r => r.json()).then(d => {
+    fetch('api/rsshub/config').then(r => r.json()).then(d => {
       setAccessKey(d.accessKey || '');
       setMd5Hash(d.md5 || '');
     });
@@ -317,7 +317,7 @@ function RsshubConfigManager() {
 
   const saveConfig = async () => {
     setSaving(true);
-    const res = await fetch('/api/rsshub/config', { 
+    const res = await fetch('api/rsshub/config', { 
       method: 'POST', 
       headers: {'Content-Type': 'application/json'}, 
       body: JSON.stringify({ accessKey }) 
@@ -325,7 +325,7 @@ function RsshubConfigManager() {
     const data = await res.json();
     alert(data.message || data.error);
     // Refresh to get MD5
-    fetch('/api/rsshub/config').then(r => r.json()).then(d => {
+    fetch('api/rsshub/config').then(r => r.json()).then(d => {
       setAccessKey(d.accessKey || '');
       setMd5Hash(d.md5 || '');
     });
@@ -335,7 +335,7 @@ function RsshubConfigManager() {
   const handleRestart = async () => {
     if (!window.confirm(t("Restart RSSHub container?", "确定重启 RSSHub 容器吗？"))) return;
     setRestarting(true);
-    const res = await fetch('/api/rsshub/restart', { method: 'POST' });
+    const res = await fetch('api/rsshub/restart', { method: 'POST' });
     const data = await res.json();
     alert(data.message || data.error);
     setRestarting(false);
