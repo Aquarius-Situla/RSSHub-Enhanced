@@ -61,10 +61,30 @@ The **"Upload"** feature in the panel allows you to bulk load your Gost node poo
 - `failTimeout` *(Optional)*: Fail timeout duration. Recommended: `"30s"`.
 - `bypass` *(Optional)*: `true` or `false`. If enabled, this node will utilize the direct connection rules specified in `bypass.txt` via the panel.
 
+## 🌐 Nginx Proxy Manager (NPM) Setup Guide
+
+If you are using NPM as your reverse proxy, please follow these steps to configure your domain and secure the `/admin` panel:
+
+1. **Reverse Proxy & `/admin` Route Configuration**:
+   Create a new Proxy Host in NPM (e.g., `rss.yourdomain.com`):
+   - **Details -> Forward Hostname / IP**: `rsshub`
+   - **Details -> Forward Port**: `1200`
+   - **Custom Locations -> Add Location**:
+     - **Location**: `/admin`
+     - **Forward Hostname / IP**: `rsshub-admin`
+     - **Forward Port**: `3000`
+
+2. **Configure Auth (Security Access Control)**:
+   The admin panel directly manages your nodes and CookieCloud secrets. To prevent unauthorized access, you **MUST** set up Basic Auth in NPM.
+   - Go to **Access Lists** in the top menu of NPM and create a new list (e.g., `RSSHub Admin Auth`).
+   - In the `Authorization` tab, add your personal username and password.
+   - Finally, go back to your Proxy Host `Details` page, select this newly created list from the `Access List` dropdown menu, and save.
+
 ---
 
-## 📜 Legacy Commands Memo
-Grant all users read permissions to the special Bilibili description file (644 means: owner can read/write, group can read, others can read):
+## 📜 Advanced Route Modding Reminder (Memo)
+If you ever plan to modify native RSSHub route files (like customizing Bilibili templates) by mounting an external folder such as `rsshub-config`, please be mindful of the host folder permissions. The container must have read access to the mounted folder:
 ```bash
-chmod 644 /opt/rsshub/rsshub-config/bilibili/description.tsx
+# Example: Grant global read permissions to the external config folder to prevent 403 errors in the RSSHub container
+chmod -R 644 /opt/rsshub/rsshub-config/
 ```

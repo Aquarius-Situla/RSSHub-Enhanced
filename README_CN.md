@@ -61,10 +61,30 @@ cp .env.example .env
 - `failTimeout` *(可选)*: 失败判定超时时间，推荐值 `"30s"`。
 - `bypass` *(可选)*: `true` 或 `false`，开启后此节点将使用面板中配置的 `bypass.txt` 直连规则。
 
+## 🌐 Nginx Proxy Manager (NPM) 配置指南
+
+若您使用 NPM 作为反向代理，请按以下步骤配置您的站点以及 `/admin` 管理面板的安全访问：
+
+1. **反向代理与 `/admin` 路径配置**：
+   在 NPM 中新建一个 Proxy Host（例如 `rss.yourdomain.com`）：
+   - **Details -> Forward Hostname / IP**: `rsshub`
+   - **Details -> Forward Port**: `1200`
+   - **Custom Locations -> Add Location**:
+     - **Location**: `/admin`
+     - **Forward Hostname / IP**: `rsshub-admin`
+     - **Forward Port**: `3000`
+
+2. **配置 Auth (安全访问控制)**：
+   管理面板直接控制您的节点和 CookieCloud 等私密信息。为了防止未授权访问，**必须**在 NPM 中为其设置 Basic Auth 认证。
+   - 在 NPM 面板的顶部菜单栏找到 **Access Lists**，新建一个列表（例如命名为 `RSSHub Admin Auth`）。
+   - 在该列表的 `Authorization` 选项卡中，添加一个您的专属用户名和密码。
+   - 最后，回到您刚才配置的 Proxy Host，在 `Details` 页面的 `Access List` 下拉菜单中，选中您刚刚创建的 Auth 列表，保存即可。
+
 ---
 
-## 📜 遗留命令备忘录
-给予所有用户对 Bilibili 特殊 description 文件的读取权限（644 代表：所有者读写，组用户只读，其他用户只读）：
+## 📜 高阶路由魔改提醒 (备忘录)
+如果您未来希望通过挂载类似 `rsshub-config` 这样的外部文件夹，来魔改 RSSHub 的原生路由文件（例如修改 Bilibili 的路由或模板），请务必注意宿主机的文件夹权限问题。您必须授权容器读取该文件夹：
 ```bash
-chmod 644 /opt/rsshub/rsshub-config/bilibili/description.tsx
+# 举例：赋予外挂配置文件夹全局读取权限，防止 RSSHub 容器因权限不足引发错误
+chmod -R 644 /opt/rsshub/rsshub-config/
 ```
