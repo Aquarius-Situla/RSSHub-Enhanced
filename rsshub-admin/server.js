@@ -89,52 +89,63 @@ app.get('/api/nodes', async (req, res) => {
         const gostCommand = doc.getIn(['services', 'gost', 'command']);
         if (!gostCommand) return res.json({ nodes: [] });
 
-        const lines = typeof gostCommand === 'string' ? gostCommand.split('\n') : gostCommand.items.map(i => i.value);
-        const nodes = lines.map(line => line.trim())
-            .filter(line => line.startsWith('-F='))
-            .map(line => {
-                const match = line.match(/-F=rr:\/\/([^\s\?]+)(.*)/);
-                if (match) {
-                    let fullUrl = match[1];
-                    let url = fullUrl;
-                    let auth = '';
-                    if (fullUrl.includes('@')) {
-                        const parts = fullUrl.split('@');
-                        auth = parts[0];
-                        url = parts[1];
-                    }
-                    const paramsStr = match[2].trim();
-                    let maxFails = '3';
-                    let failTimeout = '30s';
-                    let bypass = false;
+        let commandStr = '';
+        if (typeof gostCommand === 'string') {
+            commandStr = gostCommand;
+        } else if (gostCommand && gostCommand.items) {
+            commandStr = gostCommand.items.map(i => i.value).join(' ');
+        } else if (Array.isArray(gostCommand)) {
+            commandStr = gostCommand.join(' ');
+        }
 
-                    if (paramsStr.includes('max_fails=')) {
-                        const mfMatch = paramsStr.match(/max_fails=(\d+)/);
-                        if (mfMatch) maxFails = mfMatch[1];
-                    }
-                    if (paramsStr.includes('fail_timeout=')) {
-                        const ftMatch = paramsStr.match(/fail_timeout=([a-zA-Z0-9]+)/);
-                        if (ftMatch) failTimeout = ftMatch[1];
-                    }
-                    if (paramsStr.includes('-bypass=/bypass.txt')) {
-                        bypass = true;
-                    }
-                    return { url, auth, maxFails, failTimeout, bypass, rawParams: paramsStr };
+        const nodes = [];
+        const parts = commandStr.split('-F=').slice(1);
+        
+        parts.forEach(part => {
+            const match = part.match(/^rr:\/\/([^\s\?]+)([\s\S]*)/);
+            if (match) {
+                let fullUrl = match[1];
+                let url = fullUrl;
+                let auth = '';
+                if (fullUrl.includes('@')) {
+                    const authParts = fullUrl.split('@');
+                    auth = authParts[0];
+                    url = authParts[1];
                 }
-                const fallbackMatch = line.match(/-F=rr:\/\/([^\s]+)/);
+                const paramsStr = match[2];
+                let maxFails = '3';
+                let failTimeout = '30s';
+                let bypass = false;
+
+                if (paramsStr.includes('max_fails=')) {
+                    const mfMatch = paramsStr.match(/max_fails=(\d+)/);
+                    if (mfMatch) maxFails = mfMatch[1];
+                }
+                if (paramsStr.includes('fail_timeout=')) {
+                    const ftMatch = paramsStr.match(/fail_timeout=([a-zA-Z0-9]+)/);
+                    if (ftMatch) failTimeout = ftMatch[1];
+                }
+                if (paramsStr.includes('-bypass=/bypass.txt')) {
+                    bypass = true;
+                }
+                nodes.push({ url, auth, maxFails, failTimeout, bypass, rawParams: paramsStr });
+            } else {
+                const fallbackMatch = part.match(/^rr:\/\/([^\s]+)/);
                 if (fallbackMatch) {
                     let fullUrl = fallbackMatch[1];
                     let url = fullUrl;
                     let auth = '';
                     if (fullUrl.includes('@')) {
-                        const parts = fullUrl.split('@');
-                        auth = parts[0];
-                        url = parts[1];
+                        const authParts = fullUrl.split('@');
+                        auth = authParts[0];
+                        url = authParts[1];
                     }
-                    return { url, auth, maxFails: '3', failTimeout: '30s', bypass: false, rawParams: '' };
+                    nodes.push({ url, auth, maxFails: '3', failTimeout: '30s', bypass: false, rawParams: '' });
+                } else {
+                    nodes.push({ url: part.trim().replace(/^rr:\/\//, ''), auth: '', maxFails: '3', failTimeout: '30s', bypass: false, rawParams: '' });
                 }
-                return { url: line.replace('-F=', '').replace('rr://', ''), auth: '', maxFails: '3', failTimeout: '30s', bypass: false, rawParams: '' };
-            });
+            }
+        });
 
         res.json({ nodes });
     } catch (error) {
@@ -151,23 +162,31 @@ app.post('/api/nodes', async (req, res) => {
         const composePath = getComposePath();
         const file = await fs.readFile(composePath, 'utf8');
         const doc = parseDocument(file);
-        
         let gostCommand = doc.getIn(['services', 'gost', 'command']);
         if (gostCommand === undefined) return res.status(400).json({ error: 'gost service command not found' });
+        
+        let commandStr = '';
+        if (typeof gostCommand === 'string') {
+            commandStr = gostCommand;
+        } else if (gostCommand && gostCommand.items) {
+            commandStr = gostCommand.items.map(i => i.value).join(' ');
+        } else if (Array.isArray(gostCommand)) {
+            commandStr = gostCommand.join(' ');
+        }
 
-        const currentLines = typeof gostCommand === 'string' ? gostCommand.split('\n') : gostCommand.items.map(i => i.value);
-        const baseLines = currentLines.filter(line => !line.trim().startsWith('-F='));
+        const baseCommand = commandStr.split('-F=')[0].trim();
+
         const newNodesLines = nodes.map(node => {
             // Build the params string
             let p = `?max_fails=${node.maxFails || 3}&fail_timeout=${node.failTimeout || '30s'}`;
             if (node.bypass) p += ' -bypass=/bypass.txt';
             // ensure we don't double prepend rr://
-            const ipPort = node.url.replace('rr://', '');
+            const ipPort = node.url.replace(/^rr:\/\//, '');
             const authStr = node.auth ? `${node.auth}@` : '';
             return `-F=rr://${authStr}${ipPort}${p}`;
         });
         
-        const newCommandBlock = [...baseLines, ...newNodesLines].join('\n');
+        const newCommandBlock = [baseCommand, ...newNodesLines].filter(Boolean).join('\n');
         doc.setIn(['services', 'gost', 'command'], newCommandBlock);
         
         await fs.writeFile(composePath, doc.toString({ lineWidth: 0 }), 'utf8');

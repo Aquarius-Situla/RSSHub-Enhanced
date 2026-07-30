@@ -61,7 +61,7 @@ The **"Upload"** feature in the panel allows you to bulk load your Gost node poo
 ```
 
 ### Field Descriptions:
-- `url` **(Required)**: The `IP:Port` of the target proxy server.
+- `url` **(Required)**: The `IP:Port` of the target proxy server. **Note:** Because the panel utilizes Gost's `rr://` (round-robin) group for load-balancing, currently **only HTTP/HTTPS proxy protocols are supported**. Please do not enter `socks5://` or other protocols here; just enter `IP:Port` (defaults to HTTP).
 - `auth` *(Optional)*: Node authentication info. Supports `username:password` format or just `password`. Leave blank or omit this field if authentication is not required.
 - `maxFails` *(Optional)*: Max retry count. Recommended: `"3"`.
 - `failTimeout` *(Optional)*: Fail timeout duration. Recommended: `"30s"`.
