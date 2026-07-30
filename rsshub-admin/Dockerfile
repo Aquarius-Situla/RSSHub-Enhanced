@@ -1,7 +1,8 @@
 FROM node:20-alpine
 
 # Install Docker CLI to be able to restart containers via mounted socket
-RUN apk add --no-cache docker-cli
+# Also install python3 and dependencies required by decrypt.py
+RUN apk add --no-cache docker-cli python3 py3-requests py3-pycryptodome
 
 WORKDIR /app
 

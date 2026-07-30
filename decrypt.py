@@ -70,7 +70,7 @@ def decrypt_cookie(server_url, uuid, password):
 def main():
     # 手动加载 .env 文件（如果存在）
     if os.path.exists('.env'):
-        with open('.env', 'r', encoding='utf-8') as f:
+        with open('.env', 'r', encoding='utf-8', errors='ignore') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
