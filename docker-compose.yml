@@ -1,0 +1,102 @@
+services:
+  # --- Gost_v2: 代理调度器 ---
+  gost:
+    image: ginuerzh/gost
+    restart: always
+    volumes:
+      - ./bypass.txt:/bypass.txt
+    command: >
+      -L=:8888
+      -F=rr://user:password@1.2.3.4:8080?max_fails=3&fail_timeout=30s -bypass=/bypass.txt
+    networks:
+      - npm_default
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+
+  # --- RSSHub: 核心服务 ---
+  rsshub:
+    image: diygod/rsshub:chromium-bundled
+    restart: always
+    ports:
+      - "127.0.0.1:1200:1200"
+    env_file:
+      - rsshub.env
+    environment:
+      - CHROMIUM_ENDPOINT=http://browserless:3000
+      - PUPPETEER_WS_ENDPOINT=ws://browserless:3000
+      - PUPPETEER_WAIT_UNTIL=networkidle2
+      - ACCESS_KEY=your_access_key_here
+      - YOUTUBE_KEY=your_youtube_api_key_here
+      - REDIS_URL=redis://redis:6379/0
+      - PROXY_URL=http://gost:8888 
+      - PROXY_STRATEGY=all
+      - REQUEST_TIMEOUT=120000 
+      - YOUTUBE_THUMBNAIL_QUALITY=maxresdefault
+      - NODE_ENV=production
+    depends_on:
+      - redis
+      - browserless
+      - gost
+      - cookiecloud
+    networks:
+      - npm_default
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+
+  # --- Browserless: 无头浏览器服务 ---
+  browserless:
+    image: browserless/chrome:latest
+    restart: always
+    environment:
+      - MAX_CONCURRENT_SESSIONS=1
+      - PREBOOT_CHROME=false
+      - CONNECTION_TIMEOUT=120000
+    shm_size: '256mb'
+    networks:
+      - npm_default
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # --- Redis: 缓存服务 ---
+  redis:
+    image: redis:alpine
+    restart: always
+    command: redis-server
+    networks:
+      - npm_default
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+  # --- CookieCloud: Cookie 同步服务端 ---
+  cookiecloud:
+    image: easychen/cookiecloud:latest
+    restart: always
+    environment:
+      - PORT=8088
+    networks:
+      - npm_default
+
+  # --- RSSHub Admin: 管理面板 ---
+  rsshub-admin:
+    build: ./rsshub-admin
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - COMPOSE_FILE_PATH=/host_data/docker-compose.yml
+    volumes:
+      - ./:/host_data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - npm_default
+
+networks:
+  npm_default:
+    external: true

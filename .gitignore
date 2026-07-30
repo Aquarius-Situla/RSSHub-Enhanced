@@ -1,0 +1,16 @@
+# Environment Variables
+.env
+*.env
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# RSSHub-Admin generated data files
+cookiecloud.json
+bypass.txt
+
+# OS Files
+.DS_Store
+Thumbs.db
