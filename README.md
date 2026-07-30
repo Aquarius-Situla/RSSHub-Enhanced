@@ -2,10 +2,11 @@
 
 # RSSHub-Admin Deployment & Management Panel
 
-[![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)](https://github.com/Aquarius-Situla/RSSHub-Enhanced/blob/main/LICENSE) &nbsp;&nbsp; [![RSSHub](https://img.shields.io/badge/RSSHub-Supported-FF69B4?logo=rss&logoColor=white)](https://docs.rsshub.app/) &nbsp;&nbsp; [![NPM](https://img.shields.io/badge/Nginx%20Proxy%20Manager-Supported-009688?logo=nginx&logoColor=white)](https://nginxproxymanager.com/) &nbsp;&nbsp; [![Docker](https://img.shields.io/badge/Docker-Supported-blue?logo=docker)](https://www.docker.com/)
+[![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)](https://github.com/Aquarius-Situla/RSSHub-Enhanced/blob/main/LICENSE) &nbsp;&nbsp; [![RSSHub](https://img.shields.io/badge/RSSHub-Works%20With-FF69B4?logo=rss&logoColor=white)](https://docs.rsshub.app/) &nbsp;&nbsp; [![NPM](https://img.shields.io/badge/Nginx%20Proxy%20Manager-Works%20With-009688?logo=nginx&logoColor=white)](https://nginxproxymanager.com/) &nbsp;&nbsp; [![Docker](https://img.shields.io/badge/Docker-Works%20With-blue?logo=docker)](https://www.docker.com/)
 
 A visual management panel for RSSHub and Gost proxy built with Node.js and React. It natively supports Apple's design aesthetics (perfectly adapted for both mobile and desktop), supports one-click bilingual (English/Simplified Chinese) switching, and enables zero-threshold maintenance for your RSSHub and CookieCloud nodes!
 
+> **Disclaimer**: This is a third-party, community-developed tool and is **not affiliated with or officially maintained by RSSHub**.
 > [!WARNING]
 > **Security Warning: This management panel is a pure internal tool and DOES NOT include any built-in login interface or authentication module!**
 > Because this panel possesses high privileges (it can directly modify proxy nodes, overwrite Cookies, and change core system environment variables), you **MUST** configure front-end security protection such as Basic Auth or SSO for the `/admin` path using reverse proxy tools like Nginx Proxy Manager. **DO NOT expose it directly to the public internet without protection!** (See the [NPM Setup Guide](#-nginx-proxy-manager-npm-setup-guide) at the bottom for details.)
