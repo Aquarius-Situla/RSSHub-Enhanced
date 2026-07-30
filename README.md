@@ -2,10 +2,7 @@
 
 # RSSHub-Admin Deployment & Management Panel
 
-![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)
-[![RSSHub](https://img.shields.io/badge/RSSHub-Supported-FF69B4?logo=rss&logoColor=white)](https://docs.rsshub.app/)
-[![NPM](https://img.shields.io/badge/Nginx%20Proxy%20Manager-Supported-009688?logo=nginx&logoColor=white)](https://nginxproxymanager.com/)
-![Docker](https://img.shields.io/badge/Docker-Supported-blue?logo=docker)
+[![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)](https://github.com/Aquarius-Situla/RSSHub-Enhanced/blob/main/LICENSE) &nbsp;&nbsp; [![RSSHub](https://img.shields.io/badge/RSSHub-Supported-FF69B4?logo=rss&logoColor=white)](https://docs.rsshub.app/) &nbsp;&nbsp; [![NPM](https://img.shields.io/badge/Nginx%20Proxy%20Manager-Supported-009688?logo=nginx&logoColor=white)](https://nginxproxymanager.com/) &nbsp;&nbsp; [![Docker](https://img.shields.io/badge/Docker-Supported-blue?logo=docker)](https://www.docker.com/)
 
 A visual management panel for RSSHub and Gost proxy built with Node.js and React. It natively supports Apple's design aesthetics (perfectly adapted for both mobile and desktop), supports one-click bilingual (English/Simplified Chinese) switching, and enables zero-threshold maintenance for your RSSHub and CookieCloud nodes!
 
