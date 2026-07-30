@@ -2,6 +2,11 @@
 
 # RSSHub-Admin Deployment & Management Panel
 
+![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)
+![Stars](https://img.shields.io/github/stars/Aquarius-Situla/RSSHub-Enhanced)
+![Forks](https://img.shields.io/github/forks/Aquarius-Situla/RSSHub-Enhanced)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue?logo=docker)
+
 A visual management panel for RSSHub and Gost proxy built with Node.js and React. It natively supports Apple's design aesthetics (perfectly adapted for both mobile and desktop), supports one-click bilingual (English/Simplified Chinese) switching, and enables zero-threshold maintenance for your RSSHub and CookieCloud nodes!
 
 ## 🌟 Features
@@ -61,24 +66,38 @@ The **"Upload"** feature in the panel allows you to bulk load your Gost node poo
 - `failTimeout` *(Optional)*: Fail timeout duration. Recommended: `"30s"`.
 - `bypass` *(Optional)*: `true` or `false`. If enabled, this node will utilize the direct connection rules specified in `bypass.txt` via the panel.
 
+---
+
 ## 🌐 Nginx Proxy Manager (NPM) Setup Guide
 
-If you are using NPM as your reverse proxy, please follow these steps to configure your domain and secure the `/admin` panel:
+Since RSSHub needs to be public for RSS readers, while the `/admin` panel controls your private nodes and cookies, **we must NOT lock down the entire domain**. To achieve **"Protecting only the /admin panel"**, please paste the following Nginx routing code block into the **Advanced** tab of your NPM proxy configuration:
 
-1. **Reverse Proxy & `/admin` Route Configuration**:
-   Create a new Proxy Host in NPM (e.g., `rss.yourdomain.com`):
-   - **Details -> Forward Hostname / IP**: `rsshub`
-   - **Details -> Forward Port**: `1200`
-   - **Custom Locations -> Add Location**:
-     - **Location**: `/admin`
-     - **Forward Hostname / IP**: `rsshub-admin`
-     - **Forward Port**: `3000`
+```nginx
+# Proxy RSSHub core service (Public by default)
+location / {
+    proxy_pass http://rsshub:1200/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
 
-2. **Configure Auth (Security Access Control)**:
-   The admin panel directly manages your nodes and CookieCloud secrets. To prevent unauthorized access, you **MUST** set up Basic Auth in NPM.
-   - Go to **Access Lists** in the top menu of NPM and create a new list (e.g., `RSSHub Admin Auth`).
-   - In the `Authorization` tab, add your personal username and password.
-   - Finally, go back to your Proxy Host `Details` page, select this newly created list from the `Access List` dropdown menu, and save.
+# Proxy the Admin Panel and enable situla-auth password protection
+location ^~ /admin/ {
+    # Enable Basic Auth named situla-auth
+    auth_basic "situla-auth";
+    
+    # Path to the password file. Please create an Access List in the NPM panel first, or generate a .htpasswd file.
+    # Example: auth_basic_user_file /data/access/1; (where 1 is the Access List ID in NPM)
+    auth_basic_user_file /data/access/your_auth_file;
+    
+    proxy_pass http://rsshub-admin:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+> **Note**: Please replace `your_auth_file` above with your actual path. If you are using NPM's built-in Access List, it is usually saved under `/data/access/NumberID`.
 
 ---
 

@@ -2,6 +2,11 @@
 
 # RSSHub-Admin 部署与管理面板
 
+![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)
+![Stars](https://img.shields.io/github/stars/Aquarius-Situla/RSSHub-Enhanced)
+![Forks](https://img.shields.io/github/forks/Aquarius-Situla/RSSHub-Enhanced)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue?logo=docker)
+
 一个基于 Node.js 和 React 的 RSSHub 与 Gost 代理可视化管理面板。原生支持 Apple 设计风格（支持移动端/桌面端完美适配），支持双语（简体中文/English）一键切换，实现零门槛维护您的 RSSHub 和 CookieCloud 节点！
 
 ## 🌟 特性
@@ -61,24 +66,38 @@ cp .env.example .env
 - `failTimeout` *(可选)*: 失败判定超时时间，推荐值 `"30s"`。
 - `bypass` *(可选)*: `true` 或 `false`，开启后此节点将使用面板中配置的 `bypass.txt` 直连规则。
 
+---
+
 ## 🌐 Nginx Proxy Manager (NPM) 配置指南
 
-若您使用 NPM 作为反向代理，请按以下步骤配置您的站点以及 `/admin` 管理面板的安全访问：
+由于 RSSHub 需要对外公开给阅读器，而 `/admin` 面板直接控制您的隐私节点和 Cookie，因此我们**绝不能直接把整个域名锁死**。为了实现**“只保护 /admin 面板”**，请在 NPM 代理配置的 **Advanced (高级)** 选项卡中，填入以下 Nginx 官方路由鉴权代码块：
 
-1. **反向代理与 `/admin` 路径配置**：
-   在 NPM 中新建一个 Proxy Host（例如 `rss.yourdomain.com`）：
-   - **Details -> Forward Hostname / IP**: `rsshub`
-   - **Details -> Forward Port**: `1200`
-   - **Custom Locations -> Add Location**:
-     - **Location**: `/admin`
-     - **Forward Hostname / IP**: `rsshub-admin`
-     - **Forward Port**: `3000`
+```nginx
+# 代理 RSSHub 核心服务（默认全网公开）
+location / {
+    proxy_pass http://rsshub:1200/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
 
-2. **配置 Auth (安全访问控制)**：
-   管理面板直接控制您的节点和 CookieCloud 等私密信息。为了防止未授权访问，**必须**在 NPM 中为其设置 Basic Auth 认证。
-   - 在 NPM 面板的顶部菜单栏找到 **Access Lists**，新建一个列表（例如命名为 `RSSHub Admin Auth`）。
-   - 在该列表的 `Authorization` 选项卡中，添加一个您的专属用户名和密码。
-   - 最后，回到您刚才配置的 Proxy Host，在 `Details` 页面的 `Access List` 下拉菜单中，选中您刚刚创建的 Auth 列表，保存即可。
+# 代理管理面板并启用 situla-auth 密码保护
+location ^~ /admin/ {
+    # 启用名为 situla-auth 的 Basic Auth 基础认证
+    auth_basic "situla-auth";
+    
+    # 密码文件路径。请先在 NPM 面板创建好一个 Access List，或者自己生成一个 .htpasswd 文件
+    # 例如：auth_basic_user_file /data/access/1; (其中 1 是 NPM 里 Access List 的 ID)
+    auth_basic_user_file /data/access/your_auth_file;
+    
+    proxy_pass http://rsshub-admin:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+> **注意**：上面的 `your_auth_file` 请替换为您自己的真实路径，如果您用的是 NPM 自带的 Access List，它通常保存在 `/data/access/数字ID`。
 
 ---
 
