@@ -30,6 +30,55 @@ const COOKIECLOUD_LOG = path.join(getHostDataDir(), 'update_cookies.log');
 const DECRYPT_SCRIPT = path.join(getHostDataDir(), 'decrypt.py');
 const BYPASS_TXT = path.join(getHostDataDir(), 'bypass.txt');
 
+
+async function getEnvVars() {
+    const envPath = path.join(getHostDataDir(), '.env');
+    if (!existsSync(envPath)) return {};
+    const content = await fs.readFile(envPath, 'utf8');
+    return dotenv.parse(content);
+}
+
+async function updateEnvVars(updates) {
+    const envPath = path.join(getHostDataDir(), '.env');
+    let content = '';
+    if (existsSync(envPath)) {
+        content = await fs.readFile(envPath, 'utf8');
+    }
+    
+    let lines = content.split('\n');
+    const updatedKeys = new Set();
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line || line.startsWith('#')) continue;
+        
+        const splitIdx = line.indexOf('=');
+        if (splitIdx === -1) continue;
+        
+        const key = line.substring(0, splitIdx).trim();
+        if (key in updates) {
+            lines[i] = `${key}=${updates[key]}`;
+            updatedKeys.add(key);
+        }
+    }
+
+    for (const [key, value] of Object.entries(updates)) {
+        if (!updatedKeys.has(key) && value !== undefined && value !== null) {
+            lines.push(`${key}=${value}`);
+        }
+    }
+
+    await fs.writeFile(envPath, lines.join('\n'), 'utf8');
+    
+    // Trigger docker compose up -d to apply .env changes
+    return new Promise((resolve, reject) => {
+        exec('docker compose up -d || docker-compose up -d', { cwd: getHostDataDir() }, (err, stdout, stderr) => {
+            if (err) console.error('Failed to reload containers:', stderr);
+            resolve();
+        });
+    });
+}
+
 // === Proxy Nodes API ===
 app.get('/api/nodes', async (req, res) => {
     try {
@@ -166,24 +215,14 @@ app.post('/api/bypass', async (req, res) => {
 // === CookieCloud API ===
 app.get('/api/cookiecloud', async (req, res) => {
     try {
-        let config = { server: '', uuid: '', password: '', bilibiliUid: '', youtubeKey: '' };
-        if (existsSync(COOKIECLOUD_CONFIG)) {
-            const data = await fs.readFile(COOKIECLOUD_CONFIG, 'utf8');
-            config = { ...config, ...JSON.parse(data) };
-        }
-        
-        const composePath = getComposePath();
-        const file = await fs.readFile(composePath, 'utf8');
-        const doc = parseDocument(file);
-        let envs = doc.getIn(['services', 'rsshub', 'environment']);
-        if (envs) {
-            const envArray = typeof envs === 'string' ? envs.split('\n') : envs.items.map(i => i.value || i.toString());
-            const keyLine = envArray.find(line => line.startsWith('YOUTUBE_KEY='));
-            if (keyLine) {
-                config.youtubeKey = keyLine.replace('YOUTUBE_KEY=', '').trim();
-            }
-        }
-        
+        const envVars = await getEnvVars();
+        const config = {
+            server: envVars.COOKIECLOUD_SERVER || '',
+            uuid: envVars.COOKIECLOUD_UUID || '',
+            password: envVars.COOKIECLOUD_PASSWORD || '',
+            bilibiliUid: envVars.BILIBILIUID || '',
+            youtubeKey: envVars.YOUTUBE_KEY || ''
+        };
         res.json(config);
     } catch (error) {
         console.error("Error reading CookieCloud config:", error);
@@ -194,23 +233,15 @@ app.get('/api/cookiecloud', async (req, res) => {
 app.post('/api/cookiecloud', async (req, res) => {
     try {
         const { server, uuid, password, bilibiliUid, youtubeKey } = req.body;
-        await fs.writeFile(COOKIECLOUD_CONFIG, JSON.stringify({ server, uuid, password, bilibiliUid }, null, 2));
+        const updates = {};
+        if (server !== undefined) updates.COOKIECLOUD_SERVER = server;
+        if (uuid !== undefined) updates.COOKIECLOUD_UUID = uuid;
+        if (password !== undefined) updates.COOKIECLOUD_PASSWORD = password;
+        if (bilibiliUid !== undefined) updates.BILIBILIUID = bilibiliUid;
+        if (youtubeKey !== undefined) updates.YOUTUBE_KEY = youtubeKey;
         
-        if (youtubeKey !== undefined) {
-            const composePath = getComposePath();
-            const file = await fs.readFile(composePath, 'utf8');
-            const doc = parseDocument(file);
-            let envs = doc.getIn(['services', 'rsshub', 'environment']);
-            if (envs) {
-                let envArray = typeof envs === 'string' ? envs.split('\n') : envs.items.map(i => i.value || i.toString());
-                envArray = envArray.filter(line => !line.trim().startsWith('YOUTUBE_KEY='));
-                if (youtubeKey) envArray.push(`YOUTUBE_KEY=${youtubeKey}`);
-                doc.setIn(['services', 'rsshub', 'environment'], envArray);
-                await fs.writeFile(composePath, doc.toString({ lineWidth: 0 }), 'utf8');
-            }
-        }
-        
-        res.json({ success: true, message: 'Config saved successfully' });
+        await updateEnvVars(updates);
+        res.json({ success: true, message: 'Config saved successfully and containers reloaded' });
     } catch (error) {
         console.error("Error saving CookieCloud config:", error);
         res.status(500).json({ error: 'Failed to save config' });
@@ -219,17 +250,10 @@ app.post('/api/cookiecloud', async (req, res) => {
 
 app.post('/api/cookiecloud/sync', async (req, res) => {
     try {
-        let config = { server: '', uuid: '', password: '', bilibiliUid: '' };
-        if (existsSync(COOKIECLOUD_CONFIG)) {
-            config = JSON.parse(await fs.readFile(COOKIECLOUD_CONFIG, 'utf8'));
-        }
-
-        const env = { ...process.env, BILIBILIUID: config.bilibiliUid || '' };
-        const cmd = `python3 ${DECRYPT_SCRIPT} "${config.server}" "${config.uuid}" "${config.password}"`;
-        
+        const cmd = `python3 ${DECRYPT_SCRIPT}`;
         await fs.writeFile(COOKIECLOUD_LOG, `--- Starting sync at ${new Date().toISOString()} ---\n`, { flag: 'a' });
 
-        exec(cmd, { env, cwd: getHostDataDir() }, async (error, stdout, stderr) => {
+        exec(cmd, { cwd: getHostDataDir() }, async (error, stdout, stderr) => {
             const logOutput = stdout + stderr;
             await fs.writeFile(COOKIECLOUD_LOG, logOutput + '\n', { flag: 'a' });
             
@@ -237,9 +261,8 @@ app.post('/api/cookiecloud/sync', async (req, res) => {
                 return res.status(500).json({ error: 'Decryption script failed', details: logOutput });
             }
 
-            // Restart RSSHub
-            const composePath = getComposePath();
-            exec(`docker restart rsshub-rsshub-1 || docker compose -f ${composePath} restart rsshub`, async (restartErr, rStdout, rStderr) => {
+            // Restart RSSHub to pick up the new rsshub.env
+            exec(`docker restart rsshub-rsshub-1 || docker compose restart rsshub`, async (restartErr, rStdout, rStderr) => {
                 const rLog = restartErr ? `Restart Error: ${rStderr}` : `Restart Success: ${rStdout}`;
                 await fs.writeFile(COOKIECLOUD_LOG, rLog + '\n------------------\n', { flag: 'a' });
                 
@@ -257,7 +280,6 @@ app.get('/api/cookiecloud/logs', async (req, res) => {
     try {
         if (existsSync(COOKIECLOUD_LOG)) {
             const data = await fs.readFile(COOKIECLOUD_LOG, 'utf8');
-            // Return last 50 lines
             const lines = data.split('\n').filter(Boolean).slice(-50).join('\n');
             res.json({ logs: lines });
         } else {
@@ -271,20 +293,8 @@ app.get('/api/cookiecloud/logs', async (req, res) => {
 // === RSSHub Config API ===
 app.get('/api/rsshub/config', async (req, res) => {
     try {
-        const composePath = getComposePath();
-        const file = await fs.readFile(composePath, 'utf8');
-        const doc = parseDocument(file);
-        
-        let envs = doc.getIn(['services', 'rsshub', 'environment']);
-        let accessKey = '';
-        
-        if (envs) {
-            const envArray = typeof envs === 'string' ? envs.split('\n') : envs.items.map(i => i.value || i.toString());
-            const keyLine = envArray.find(line => line.startsWith('ACCESS_KEY='));
-            if (keyLine) {
-                accessKey = keyLine.replace('ACCESS_KEY=', '').trim();
-            }
-        }
+        const envVars = await getEnvVars();
+        const accessKey = envVars.ACCESS_KEY || '';
         const md5 = accessKey ? crypto.createHash('md5').update(accessKey).digest('hex') : '';
         res.json({ accessKey, md5 });
     } catch (error) {
@@ -298,23 +308,8 @@ app.post('/api/rsshub/config', async (req, res) => {
         const { accessKey } = req.body;
         if (accessKey === undefined) return res.status(400).json({ error: 'accessKey is required' });
 
-        const composePath = getComposePath();
-        const file = await fs.readFile(composePath, 'utf8');
-        const doc = parseDocument(file);
-        
-        let envs = doc.getIn(['services', 'rsshub', 'environment']);
-        if (envs) {
-            let envArray = typeof envs === 'string' ? envs.split('\n') : envs.items.map(i => i.value || i.toString());
-            // Remove existing
-            envArray = envArray.filter(line => !line.trim().startsWith('ACCESS_KEY='));
-            // Add new
-            envArray.push(`ACCESS_KEY=${accessKey}`);
-            
-            doc.setIn(['services', 'rsshub', 'environment'], envArray);
-            await fs.writeFile(composePath, doc.toString({ lineWidth: 0 }), 'utf8');
-        }
-        
-        res.json({ success: true, message: 'Access Key updated successfully' });
+        await updateEnvVars({ ACCESS_KEY: accessKey });
+        res.json({ success: true, message: 'Access Key updated successfully and containers reloaded' });
     } catch (error) {
         console.error("Error saving RSSHub config:", error);
         res.status(500).json({ error: 'Failed to save config' });
@@ -322,8 +317,7 @@ app.post('/api/rsshub/config', async (req, res) => {
 });
 
 app.post('/api/rsshub/restart', (req, res) => {
-    const composePath = getComposePath();
-    exec(`docker restart rsshub-rsshub-1 || docker compose -f ${composePath} restart rsshub`, (error, stdout, stderr) => {
+    exec(`docker restart rsshub-rsshub-1 || docker compose restart rsshub`, (error, stdout, stderr) => {
         if (error) return res.status(500).json({ error: 'Failed to restart RSSHub', details: stderr });
         res.json({ success: true, message: 'RSSHub restarted successfully' });
     });
