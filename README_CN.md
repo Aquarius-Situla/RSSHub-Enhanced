@@ -7,6 +7,7 @@
 一个基于 Node.js 和 React 的 RSSHub 与 Gost 代理可视化管理面板。原生支持 Apple 设计风格（支持移动端/桌面端完美适配），支持双语（简体中文/English）一键切换，实现零门槛维护您的 RSSHub 和 CookieCloud 节点！
 
 > **免责声明**：本项目为第三方社区开源工具，**与 RSSHub 官方团队无关，也并非由 RSSHub 官方维护**。
+
 > [!WARNING]
 > **安全警告：本项目为纯粹的内部管理工具，没有内置任何登录界面或鉴权模块！**
 > 因为面板拥有极高的权限（可以直接修改代理节点、覆盖 Cookie 和系统核心环境变量），请 **务必** 配合 Nginx Proxy Manager 等反向代理工具为 `/admin` 路径配置 Basic Auth 或 SSO 等前端层面的安全保护，**绝不可将其直接裸露在公网中！**（具体的防护操作请见底部的 [NPM 配置指南](#-nginx-proxy-manager-npm-配置指南)）

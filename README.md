@@ -7,6 +7,7 @@
 A visual management panel for RSSHub and Gost proxy built with Node.js and React. It natively supports Apple's design aesthetics (perfectly adapted for both mobile and desktop), supports one-click bilingual (English/Simplified Chinese) switching, and enables zero-threshold maintenance for your RSSHub and CookieCloud nodes!
 
 > **Disclaimer**: This is a third-party, community-developed tool and is **not affiliated with or officially maintained by RSSHub**.
+
 > [!WARNING]
 > **Security Warning: This management panel is a pure internal tool and DOES NOT include any built-in login interface or authentication module!**
 > Because this panel possesses high privileges (it can directly modify proxy nodes, overwrite Cookies, and change core system environment variables), you **MUST** configure front-end security protection such as Basic Auth or SSO for the `/admin` path using reverse proxy tools like Nginx Proxy Manager. **DO NOT expose it directly to the public internet without protection!** (See the [NPM Setup Guide](#-nginx-proxy-manager-npm-setup-guide) at the bottom for details.)
