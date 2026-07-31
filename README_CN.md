@@ -198,3 +198,15 @@ location @goauthentik_proxy_signin {
 # 举例：赋予外挂配置文件夹全局读取权限，防止 RSSHub 容器因权限不足引发错误
 chmod -R 644 /opt/rsshub/rsshub-config/
 ```
+
+---
+
+## 🙏 鸣谢与开源协议说明 (Acknowledgments)
+本面板项目的底层服务与灵感离不开以下优秀的开源项目，在此向所有作者和贡献者表示衷心的感谢：
+
+- **[RSSHub](https://github.com/DIYgod/RSSHub)**: 驱动一切的核心万物 RSS 生成服务。（基于 MIT 协议）
+- **[Gost](https://github.com/ginuerzh/gost)**: 极其轻量且强大的 Go 语言安全隧道，在此用于节点轮询与负载均衡。（基于 MIT 协议）
+- **[CookieCloud](https://github.com/easychen/CookieCloud)**: 专属的 Cookie 同步服务端与浏览器扩展。（基于 MIT 协议）
+- **[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager)**: 推荐搭配使用的反向代理与前端鉴权网关。（基于 MIT 协议）
+
+*所有第三方商标、徽标和品牌名称均为其各自所有者的财产。本项目采用 [MIT 协议](LICENSE) 开源。*

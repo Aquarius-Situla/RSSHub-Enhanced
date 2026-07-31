@@ -198,3 +198,15 @@ If you ever plan to modify native RSSHub route files (like customizing Bilibili 
 # Example: Grant global read permissions to the external config folder to prevent 403 errors in the RSSHub container
 chmod -R 644 /opt/rsshub/rsshub-config/
 ```
+
+---
+
+## 🙏 Acknowledgments & Open Source Licenses
+This project is built upon and inspired by the following incredible open-source projects. We sincerely thank the authors and contributors for their work:
+
+- **[RSSHub](https://github.com/DIYgod/RSSHub)**: The core RSS generation service. Licensed under the MIT License.
+- **[Gost](https://github.com/ginuerzh/gost)**: A simple and secure tunnel written in Go, used for node load-balancing. Licensed under the MIT License.
+- **[CookieCloud](https://github.com/easychen/CookieCloud)**: A dedicated cookie sync server/extension. Licensed under the MIT License.
+- **[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager)**: Used as the recommended reverse proxy and authentication gateway. Licensed under the MIT License.
+
+*All third-party trademarks, logos, and brand names are the property of their respective owners. This project is provided under the [MIT License](LICENSE).*
