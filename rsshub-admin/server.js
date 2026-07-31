@@ -270,7 +270,7 @@ app.post('/api/cookiecloud', async (req, res) => {
 app.post('/api/cookiecloud/sync', async (req, res) => {
     try {
         const cmd = `python3 ${DECRYPT_SCRIPT}`;
-        await fs.writeFile(COOKIECLOUD_LOG, `--- Starting sync at ${new Date().toISOString()} ---\n`, { flag: 'a' });
+        await fs.writeFile(COOKIECLOUD_LOG, `--- Starting sync at ${new Date().toISOString()} ---\n`);
 
         exec(cmd, { cwd: getHostDataDir() }, async (error, stdout, stderr) => {
             const logOutput = stdout + stderr;
