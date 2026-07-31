@@ -78,7 +78,7 @@ The **"Upload"** feature in the panel allows you to bulk load your Gost node poo
 
 Since RSSHub needs to be public for RSS readers, while the `/admin` panel controls your private nodes and cookies, **we must NOT lock down the entire domain**. To achieve **"Protecting only the /admin panel"**, please paste the appropriate Nginx routing code block into the **Advanced** tab of your NPM proxy configuration, depending on your authentication method:
 
-### Option A: Use NPM Built-in Basic Auth
+### Option A: Use NPM Built-in Basic Auth (Untested)
 Ideal for most individual users looking for a simple setup:
 
 ```nginx

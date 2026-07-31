@@ -78,7 +78,7 @@ cp .env.example .env
 
 由于 RSSHub 需要对外公开给阅读器，而 `/admin` 面板直接控制您的隐私节点和 Cookie，因此我们**绝不能直接把整个域名锁死**。为了实现**“只保护 /admin 面板”**，请在 NPM 代理配置的 **Advanced (高级)** 选项卡中，根据您的鉴权方式填入以下相应的 Nginx 官方路由代码块：
 
-### 方案 A：使用 NPM 内置密码本 (Basic Auth) 保护
+### 方案 A：使用 NPM 内置密码本 (Basic Auth) 保护 (未测试)
 适合绝大多数个人用户的极简方案：
 
 ```nginx
