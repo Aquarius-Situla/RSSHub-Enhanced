@@ -20,6 +20,8 @@ A visual management panel for RSSHub and Gost proxy built with Node.js and React
 - **Seamless Cross-Platform Adaptation**: Perfectly replicates macOS system settings sidebar and iOS smooth scrolling experience.
 - **Gost Node Visual Management**: Add, delete, query, and modify Gost load balancing proxy nodes. Supports independent node authentication (Auth), max fail counts, fail timeouts, and bypass rules editing.
 - **CookieCloud One-Click Auto Sync**: Seamlessly integrates CookieCloud accounts and Bilibili UIDs, supporting one-click forced fetch, decryption, and environment variable synchronization.
+  > [!WARNING]
+  > **Risk Control Warning**: Using cookies frequently from a remote IP that differs from your local IP might trigger account risk control mechanisms (resulting in bans or flagged accounts). You can mitigate this by lowering the fetch frequency in your RSS backend (e.g., FreshRSS). Although the author has not experienced bans with this setup, please use it with caution!
 - **Automatic Language Detection**: Automatically detects browser fingerprints to smartly render the UI in English or Chinese.
 
 ---
