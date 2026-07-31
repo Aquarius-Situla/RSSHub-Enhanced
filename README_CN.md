@@ -147,7 +147,7 @@ location ^~ /admin/ {
 }
 ```
 
-### 方案 C：使用 Authentik (SSO) 统一鉴权保护
+### 方案 C：使用 Authentik (SSO) 统一鉴权保护 (未测试)
 适合部署了 [Authentik](https://goauthentik.io/) 容器，希望实现全局单点登录的高阶用户。将以下内容粘贴到 NPM 的 Advanced 选项卡中：
 
 ```nginx

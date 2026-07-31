@@ -147,7 +147,7 @@ location ^~ /admin/ {
 }
 ```
 
-### Option C: Use Authentik (SSO) Centralized Authentication
+### Option C: Use Authentik (SSO) Centralized Authentication (Untested)
 Ideal for users who deploy [Authentik](https://goauthentik.io/) for global single sign-on. Paste this in NPM's Advanced tab:
 
 ```nginx
