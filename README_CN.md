@@ -144,6 +144,49 @@ location ^~ /admin/ {
 }
 ```
 
+### 方案 C：使用 Authentik (SSO) 统一鉴权保护
+适合部署了 [Authentik](https://goauthentik.io/) 容器，希望实现全局单点登录的高阶用户。将以下内容粘贴到 NPM 的 Advanced 选项卡中：
+
+```nginx
+# 1. 转发 outpost 请求至 Authentik 容器
+location /outpost.goauthentik.io {
+    # 请将 authentik:9000 替换为您真实的 Authentik 服务器地址
+    proxy_pass http://authentik:9000/outpost.goauthentik.io;
+    proxy_set_header Host $host;
+    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    add_header       Set-Cookie $auth_cookie;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+}
+
+# 2. 代理 RSSHub 核心服务（默认全网公开）
+location / {
+    proxy_pass http://rsshub:1200/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 3. 代理管理面板并启用 Authentik 拦截校验
+location ^~ /admin/ {
+    auth_request     /outpost.goauthentik.io/auth/nginx;
+    error_page       401 = @goauthentik_proxy_signin;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    add_header       Set-Cookie $auth_cookie;
+    
+    proxy_pass http://rsshub-admin:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 4. 内部路由：Authentik 重定向至登录页
+location @goauthentik_proxy_signin {
+    internal;
+    add_header Set-Cookie $auth_cookie;
+    return 302 /outpost.goauthentik.io/start?rd=$request_uri;
+}
+```
+
 ---
 
 ## 📜 高阶路由魔改提醒 (备忘录)

@@ -144,6 +144,49 @@ location ^~ /admin/ {
 }
 ```
 
+### Option C: Use Authentik (SSO) Centralized Authentication
+Ideal for users who deploy [Authentik](https://goauthentik.io/) for global single sign-on. Paste this in NPM's Advanced tab:
+
+```nginx
+# 1. Forward outpost requests to Authentik
+location /outpost.goauthentik.io {
+    # Replace authentik:9000 with your actual Authentik server address
+    proxy_pass http://authentik:9000/outpost.goauthentik.io;
+    proxy_set_header Host $host;
+    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    add_header       Set-Cookie $auth_cookie;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+}
+
+# 2. Proxy RSSHub core service (Public by default)
+location / {
+    proxy_pass http://rsshub:1200/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 3. Proxy the Admin Panel and enable Authentik interception check
+location ^~ /admin/ {
+    auth_request     /outpost.goauthentik.io/auth/nginx;
+    error_page       401 = @goauthentik_proxy_signin;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    add_header       Set-Cookie $auth_cookie;
+    
+    proxy_pass http://rsshub-admin:3000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 4. Authentik Proxy Sign-in Redirect
+location @goauthentik_proxy_signin {
+    internal;
+    add_header Set-Cookie $auth_cookie;
+    return 302 /outpost.goauthentik.io/start?rd=$request_uri;
+}
+```
+
 ---
 
 ## 📜 Advanced Route Modding Reminder (Memo)
