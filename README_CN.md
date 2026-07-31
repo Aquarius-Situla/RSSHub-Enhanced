@@ -212,4 +212,4 @@ chmod -R 644 /opt/rsshub/rsshub-config/
 - **[CookieCloud](https://github.com/easychen/CookieCloud)**: 专属的 Cookie 同步服务端与浏览器扩展。（基于 GPL-3.0 协议）
 - **[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager)**: 推荐搭配使用的反向代理与前端鉴权网关。（基于 MIT 协议）
 
-*所有第三方商标、徽标和品牌名称均为其各自所有者的财产。本项目采用 [MIT 协议](LICENSE) 开源。*
+*所有第三方商标、徽标和品牌名称均为其各自所有者的财产。本项目采用 [AGPL-3.0 协议](LICENSE) 开源。*

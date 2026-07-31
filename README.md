@@ -212,4 +212,4 @@ This project is built upon and inspired by the following incredible open-source 
 - **[CookieCloud](https://github.com/easychen/CookieCloud)**: A dedicated cookie sync server/extension. Licensed under the GPL-3.0 License.
 - **[Nginx Proxy Manager](https://github.com/NginxProxyManager/nginx-proxy-manager)**: Used as the recommended reverse proxy and authentication gateway. Licensed under the MIT License.
 
-*All third-party trademarks, logos, and brand names are the property of their respective owners. This project is provided under the [MIT License](LICENSE).*
+*All third-party trademarks, logos, and brand names are the property of their respective owners. This project is provided under the [AGPL-3.0 License](LICENSE).*
