@@ -36,8 +36,9 @@ This project is designed to be deployed on Linux (e.g., Debian, Ubuntu) and depe
 - Python3 and necessary cryptographic libraries (For CookieCloud decryption scripts)
 
 ### Privacy & Security Guidelines (Must Read)
-**⚠️ Do NOT hardcode any private keys directly into the source code!**
-This project fully supports the environment variable security mechanism. All sensitive data (such as `ACCESS_KEY`, `YOUTUBE_KEY`, `CookieCloud Passwords`, etc.) are managed dynamically via `.env`. Please ensure that your `.env` file is added to `.gitignore`!
+> [!WARNING]
+> **Do NOT hardcode any private keys directly into the source code!**
+> This project fully supports the environment variable security mechanism. All sensitive data (such as `ACCESS_KEY`, `YOUTUBE_KEY`, `CookieCloud Passwords`, etc.) are managed dynamically via `.env`. Please ensure that your `.env` file is added to `.gitignore`!
 
 **Configuration:**
 Before deploying for the first time, please copy the `.env.example` file in the root directory, rename it to `.env`, and fill in your real keys:
