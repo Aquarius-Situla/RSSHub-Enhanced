@@ -3,7 +3,6 @@ import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
-import { parseDocument } from 'yaml';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
@@ -82,21 +81,8 @@ async function updateEnvVars(updates) {
 // === Proxy Nodes API ===
 app.get('/api/nodes', async (req, res) => {
     try {
-        const composePath = getComposePath();
-        const file = await fs.readFile(composePath, 'utf8');
-        const doc = parseDocument(file);
-        
-        const gostCommand = doc.getIn(['services', 'gost', 'command']);
-        if (!gostCommand) return res.json({ nodes: [] });
-
-        let commandStr = '';
-        if (typeof gostCommand === 'string') {
-            commandStr = gostCommand;
-        } else if (gostCommand && gostCommand.items) {
-            commandStr = gostCommand.items.map(i => i.value).join(' ');
-        } else if (Array.isArray(gostCommand)) {
-            commandStr = gostCommand.join(' ');
-        }
+        const envVars = await getEnvVars();
+        const commandStr = envVars.GOST_COMMAND || '-L=:8888';
 
         const nodes = [];
         const parts = commandStr.split('-F=').slice(1);
@@ -159,22 +145,9 @@ app.post('/api/nodes', async (req, res) => {
         const { nodes } = req.body;
         if (!Array.isArray(nodes)) return res.status(400).json({ error: 'Nodes must be an array' });
 
-        const composePath = getComposePath();
-        const file = await fs.readFile(composePath, 'utf8');
-        const doc = parseDocument(file);
-        let gostCommand = doc.getIn(['services', 'gost', 'command']);
-        if (gostCommand === undefined) return res.status(400).json({ error: 'gost service command not found' });
-        
-        let commandStr = '';
-        if (typeof gostCommand === 'string') {
-            commandStr = gostCommand;
-        } else if (gostCommand && gostCommand.items) {
-            commandStr = gostCommand.items.map(i => i.value).join(' ');
-        } else if (Array.isArray(gostCommand)) {
-            commandStr = gostCommand.join(' ');
-        }
-
-        const baseCommand = commandStr.split('-F=')[0].trim();
+        const envVars = await getEnvVars();
+        const commandStr = envVars.GOST_COMMAND || '-L=:8888';
+        const baseCommand = commandStr.split('-F=')[0].trim() || '-L=:8888';
 
         const newNodesLines = nodes.map(node => {
             // Build the params string
@@ -186,20 +159,18 @@ app.post('/api/nodes', async (req, res) => {
             return `-F=rr://${authStr}${ipPort}${p}`;
         });
         
-        const newCommandBlock = [baseCommand, ...newNodesLines].filter(Boolean).join('\n');
-        doc.setIn(['services', 'gost', 'command'], newCommandBlock);
+        const newCommandBlock = [baseCommand, ...newNodesLines].filter(Boolean).join(' ');
         
-        await fs.writeFile(composePath, doc.toString({ lineWidth: 0 }), 'utf8');
-        res.json({ success: true, message: 'Nodes updated successfully' });
+        await updateEnvVars({ GOST_COMMAND: newCommandBlock });
+        res.json({ success: true, message: 'Nodes updated successfully and proxy restarted' });
     } catch (error) {
         console.error("Error updating nodes:", error);
-        res.status(500).json({ error: 'Failed to update docker-compose.yml' });
+        res.status(500).json({ error: 'Failed to update nodes' });
     }
 });
 
 app.post('/api/restart', (req, res) => {
-    const composePath = getComposePath();
-    exec(`docker restart rsshub-gost-1 || docker compose -f ${composePath} restart gost`, (error, stdout, stderr) => {
+    exec(`docker restart rsshub-gost-1 || docker compose restart gost`, { cwd: getHostDataDir() }, (error, stdout, stderr) => {
         if (error) return res.status(500).json({ error: 'Failed to restart container', details: stderr });
         res.json({ success: true, message: 'Gost proxy restarted successfully' });
     });
