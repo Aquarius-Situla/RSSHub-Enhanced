@@ -7,7 +7,7 @@
 
 [![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)](https://github.com/Aquarius-Situla/RSSHub-Enhanced/blob/main/LICENSE) &nbsp;&nbsp; [![RSSHub](https://img.shields.io/badge/RSSHub-Works%20With-FF69B4?logo=rss&logoColor=white)](https://docs.rsshub.app/) &nbsp;&nbsp; [![CookieCloud](https://img.shields.io/badge/🍪%20CookieCloud-Works%20With-green)](https://github.com/easychen/CookieCloud) &nbsp;&nbsp; [![NPM](https://img.shields.io/badge/Nginx%20Proxy%20Manager-Works%20With-009688?logo=nginx&logoColor=white)](https://nginxproxymanager.com/) &nbsp;&nbsp; [![Docker](https://img.shields.io/badge/Docker-Works%20With-blue?logo=docker)](https://www.docker.com/)
 
-一个基于 Node.js 和 React 的 RSSHub 与 Gost 代理可视化管理面板。原生支持 Apple 设计风格（支持移动端/桌面端完美适配），支持双语（简体中文/English）一键切换，实现零门槛维护您的 RSSHub 和 CookieCloud 节点！
+一个基于 Node.js 和 React 的 RSSHub 与 Gost 代理可视化管理面板。原生支持 Apple 设计风格（支持移动端/桌面端完美适配），支持双语（简体中文/English）基于浏览器指纹自动切换，实现零门槛维护您的 RSSHub 和 CookieCloud 节点！
 
 > **免责声明**：本项目为第三方社区开源工具，**与 RSSHub 官方团队无关，也并非由 RSSHub 官方维护**。
 
@@ -197,11 +197,20 @@ location @goauthentik_proxy_signin {
 ---
 
 ## 📜 高阶路由魔改提醒 (备忘录)
-如果您未来希望通过挂载类似 `rsshub-config` 这样的外部文件夹，来魔改 RSSHub 的原生路由文件（例如修改 Bilibili 的路由或模板），请务必注意宿主机的文件夹权限问题。您必须授权容器读取该文件夹：
-```bash
-# 举例：赋予外挂配置文件夹全局读取权限，防止 RSSHub 容器因权限不足引发错误
-chmod -R 644 /opt/rsshub/rsshub-config/
-```
+> [!WARNING]
+> RSSHub 目前已经不再支持通过外部文件夹挂载（例如挂载 `rsshub-config` 目录）的方式来增加临时路由或热更新路由了。如果您需要修改原生路由或添加自定义路由，现在的标准做法是：直接 Fork 官方仓库，在您的分支中修改代码，然后构建您自己的自定义 Docker 镜像。
+
+> [!TIP]
+> **“邪修”路线：如何不重新构建镜像，快速测试临时路由？**
+> 既然官方挂载路径被堵死了，每次测试都要重新编译打包实在太慢。这里有一个“邪修”方法：
+> 因为本管理面板（rsshub-admin）的底层也是一个 Node.js Express 服务！所以我们可以“鸠占鹊巢”，直接把爬虫脚本塞进管理面板里运行，完全绕开官方的 RSSHub 容器：
+> 1. 将您写好的测试路由（例如 `test_route.js`）放入宿主机的 `rsshub-admin` 目录中。
+> 2. 修改 `rsshub-admin/server.js`，手动引入并挂载您的路由：
+>    ```javascript
+>    import { myCustomRoute } from './test_route.js';
+>    app.get("/temp/my_route", myCustomRoute);
+>    ```
+> 3. 重启 `rsshub-admin` 容器。现在您就可以直接通过 `http://<您的IP>:3000/temp/my_route`（或者通过 Nginx 反代后的 `/admin/temp/my_route`）来访问并测试抓取结果了！
 
 ---
 

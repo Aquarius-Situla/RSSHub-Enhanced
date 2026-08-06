@@ -7,7 +7,7 @@
 
 [![License](https://img.shields.io/github/license/Aquarius-Situla/RSSHub-Enhanced)](https://github.com/Aquarius-Situla/RSSHub-Enhanced/blob/main/LICENSE) &nbsp;&nbsp; [![RSSHub](https://img.shields.io/badge/RSSHub-Works%20With-FF69B4?logo=rss&logoColor=white)](https://docs.rsshub.app/) &nbsp;&nbsp; [![CookieCloud](https://img.shields.io/badge/🍪%20CookieCloud-Works%20With-green)](https://github.com/easychen/CookieCloud) &nbsp;&nbsp; [![NPM](https://img.shields.io/badge/Nginx%20Proxy%20Manager-Works%20With-009688?logo=nginx&logoColor=white)](https://nginxproxymanager.com/) &nbsp;&nbsp; [![Docker](https://img.shields.io/badge/Docker-Works%20With-blue?logo=docker)](https://www.docker.com/)
 
-A visual management panel for RSSHub and Gost proxy built with Node.js and React. It natively supports Apple's design aesthetics (perfectly adapted for both mobile and desktop), supports one-click bilingual (English/Simplified Chinese) switching, and enables zero-threshold maintenance for your RSSHub and CookieCloud nodes!
+A visual management panel for RSSHub and Gost proxy built with Node.js and React. It natively supports Apple's design aesthetics (perfectly adapted for both mobile and desktop), supports automatic bilingual (English/Simplified Chinese) switching via browser fingerprinting, and enables zero-threshold maintenance for your RSSHub and CookieCloud nodes!
 
 > **Disclaimer**: This is a third-party, community-developed tool and is **not affiliated with or officially maintained by RSSHub**.
 
@@ -197,11 +197,20 @@ location @goauthentik_proxy_signin {
 ---
 
 ## 📜 Advanced Route Modding Reminder (Memo)
-If you ever plan to modify native RSSHub route files (like customizing Bilibili templates) by mounting an external folder such as `rsshub-config`, please be mindful of the host folder permissions. The container must have read access to the mounted folder:
-```bash
-# Example: Grant global read permissions to the external config folder to prevent 403 errors in the RSSHub container
-chmod -R 644 /opt/rsshub/rsshub-config/
-```
+> [!WARNING]
+> RSSHub no longer supports hot-loading temporary custom routes by volume mounting an external folder (e.g., `rsshub-config`) into the container. If you need to modify native route files or add custom routes, you must now fork the repository, make your code changes directly within your own fork, and build a custom Docker image.
+
+> [!TIP]
+> **The "Dark Magic" (Unorthodox) Method for Testing Routes:**
+> Since official volume mounting is dead, how do you quickly test a script without rebuilding the entire RSSHub image? 
+> Because this Admin Panel is also built on Node.js/Express, you can "hijack" it to run your scraping scripts directly, bypassing the official RSSHub container entirely!
+> 1. Copy your route script (e.g., `test_route.js`) into the host's `rsshub-admin` folder.
+> 2. Edit `rsshub-admin/server.js` to import and mount it:
+>    ```javascript
+>    import { myCustomRoute } from './test_route.js';
+>    app.get("/temp/my_route", myCustomRoute);
+>    ```
+> 3. Restart the `rsshub-admin` container. Now you can access your route via `http://<your-ip>:3000/temp/my_route` (or via your Nginx proxy under `/admin/temp/my_route`).
 
 ---
 
