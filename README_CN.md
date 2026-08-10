@@ -88,7 +88,8 @@ cp .env.example .env
 ```nginx
 # 代理 RSSHub 核心服务（默认全网公开）
 location / {
-    proxy_pass http://rsshub:1200/;
+    set $upstream_rsshub http://rsshub:1200;
+    proxy_pass $upstream_rsshub/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -103,7 +104,8 @@ location ^~ /admin/ {
     # 例如：auth_basic_user_file /data/access/1; (其中 1 是 NPM 里 Access List 的 ID)
     auth_basic_user_file /data/access/your_auth_file;
     
-    proxy_pass http://rsshub-admin:3000/;
+    set $upstream_admin http://rsshub-admin:3000;
+    proxy_pass $upstream_admin/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -118,7 +120,8 @@ location ^~ /admin/ {
 location = /_auth {
     internal;
     # 在同属 npm_default 网络下，通过容器名及内部端口直接访问
-    proxy_pass http://situla-auth:3000/verify;
+    set $upstream_auth http://situla-auth:3000;
+    proxy_pass $upstream_auth/verify;
     proxy_pass_request_body off;
     proxy_set_header Content-Length "";
     proxy_set_header X-Original-URI $request_uri;
@@ -133,7 +136,8 @@ location @error401 {
 
 # 3. 代理 RSSHub 核心服务（默认全网公开）
 location / {
-    proxy_pass http://rsshub:1200/;
+    set $upstream_rsshub http://rsshub:1200;
+    proxy_pass $upstream_rsshub/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -144,7 +148,8 @@ location ^~ /admin/ {
     # 开启请求鉴权（统一经由 /_auth 校验）
     auth_request /_auth;
     
-    proxy_pass http://rsshub-admin:3000/;
+    set $upstream_admin http://rsshub-admin:3000;
+    proxy_pass $upstream_admin/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -158,7 +163,8 @@ location ^~ /admin/ {
 # 1. 转发 outpost 请求至 Authentik 容器
 location /outpost.goauthentik.io {
     # 请将 authentik:9000 替换为您真实的 Authentik 服务器地址
-    proxy_pass http://authentik:9000/outpost.goauthentik.io;
+    set $upstream_authentik http://authentik:9000;
+    proxy_pass $upstream_authentik/outpost.goauthentik.io;
     proxy_set_header Host $host;
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     add_header       Set-Cookie $auth_cookie;
@@ -167,7 +173,8 @@ location /outpost.goauthentik.io {
 
 # 2. 代理 RSSHub 核心服务（默认全网公开）
 location / {
-    proxy_pass http://rsshub:1200/;
+    set $upstream_rsshub http://rsshub:1200;
+    proxy_pass $upstream_rsshub/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -180,7 +187,8 @@ location ^~ /admin/ {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header       Set-Cookie $auth_cookie;
     
-    proxy_pass http://rsshub-admin:3000/;
+    set $upstream_admin http://rsshub-admin:3000;
+    proxy_pass $upstream_admin/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -88,7 +88,8 @@ Ideal for most individual users looking for a simple setup:
 ```nginx
 # Proxy RSSHub core service (Public by default)
 location / {
-    proxy_pass http://rsshub:1200/;
+    set $upstream_rsshub http://rsshub:1200;
+    proxy_pass $upstream_rsshub/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -103,7 +104,8 @@ location ^~ /admin/ {
     # Example: auth_basic_user_file /data/access/1; (where 1 is the Access List ID in NPM)
     auth_basic_user_file /data/access/your_auth_file;
     
-    proxy_pass http://rsshub-admin:3000/;
+    set $upstream_admin http://rsshub-admin:3000;
+    proxy_pass $upstream_admin/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -118,7 +120,8 @@ Ideal for advanced users who deploy a `situla-auth` container for global single 
 location = /_auth {
     internal;
     # Access directly via container name and internal port within the npm_default network
-    proxy_pass http://situla-auth:3000/verify;
+    set $upstream_auth http://situla-auth:3000;
+    proxy_pass $upstream_auth/verify;
     proxy_pass_request_body off;
     proxy_set_header Content-Length "";
     proxy_set_header X-Original-URI $request_uri;
@@ -133,7 +136,8 @@ location @error401 {
 
 # 3. Proxy RSSHub core service (Public by default)
 location / {
-    proxy_pass http://rsshub:1200/;
+    set $upstream_rsshub http://rsshub:1200;
+    proxy_pass $upstream_rsshub/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -144,7 +148,8 @@ location ^~ /admin/ {
     # Enable request authentication (unified verification via /_auth)
     auth_request /_auth;
     
-    proxy_pass http://rsshub-admin:3000/;
+    set $upstream_admin http://rsshub-admin:3000;
+    proxy_pass $upstream_admin/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -158,7 +163,8 @@ Ideal for users who deploy [Authentik](https://goauthentik.io/) for global singl
 # 1. Forward outpost requests to Authentik
 location /outpost.goauthentik.io {
     # Replace authentik:9000 with your actual Authentik server address
-    proxy_pass http://authentik:9000/outpost.goauthentik.io;
+    set $upstream_authentik http://authentik:9000;
+    proxy_pass $upstream_authentik/outpost.goauthentik.io;
     proxy_set_header Host $host;
     proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
     add_header       Set-Cookie $auth_cookie;
@@ -167,7 +173,8 @@ location /outpost.goauthentik.io {
 
 # 2. Proxy RSSHub core service (Public by default)
 location / {
-    proxy_pass http://rsshub:1200/;
+    set $upstream_rsshub http://rsshub:1200;
+    proxy_pass $upstream_rsshub/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -180,7 +187,8 @@ location ^~ /admin/ {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header       Set-Cookie $auth_cookie;
     
-    proxy_pass http://rsshub-admin:3000/;
+    set $upstream_admin http://rsshub-admin:3000;
+    proxy_pass $upstream_admin/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
