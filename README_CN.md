@@ -89,7 +89,7 @@ cp .env.example .env
 # 代理 RSSHub 核心服务（默认全网公开）
 location / {
     set $upstream_rsshub http://rsshub:1200;
-    proxy_pass $upstream_rsshub/;
+    proxy_pass $upstream_rsshub;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -104,8 +104,9 @@ location ^~ /admin/ {
     # 例如：auth_basic_user_file /data/access/1; (其中 1 是 NPM 里 Access List 的 ID)
     auth_basic_user_file /data/access/your_auth_file;
     
+    rewrite ^/admin/(.*)$ /$1 break;
     set $upstream_admin http://rsshub-admin:3000;
-    proxy_pass $upstream_admin/;
+    proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -137,7 +138,7 @@ location @error401 {
 # 3. 代理 RSSHub 核心服务（默认全网公开）
 location / {
     set $upstream_rsshub http://rsshub:1200;
-    proxy_pass $upstream_rsshub/;
+    proxy_pass $upstream_rsshub;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -148,8 +149,9 @@ location ^~ /admin/ {
     # 开启请求鉴权（统一经由 /_auth 校验）
     auth_request /_auth;
     
+    rewrite ^/admin/(.*)$ /$1 break;
     set $upstream_admin http://rsshub-admin:3000;
-    proxy_pass $upstream_admin/;
+    proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -174,7 +176,7 @@ location /outpost.goauthentik.io {
 # 2. 代理 RSSHub 核心服务（默认全网公开）
 location / {
     set $upstream_rsshub http://rsshub:1200;
-    proxy_pass $upstream_rsshub/;
+    proxy_pass $upstream_rsshub;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -187,8 +189,9 @@ location ^~ /admin/ {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header       Set-Cookie $auth_cookie;
     
+    rewrite ^/admin/(.*)$ /$1 break;
     set $upstream_admin http://rsshub-admin:3000;
-    proxy_pass $upstream_admin/;
+    proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

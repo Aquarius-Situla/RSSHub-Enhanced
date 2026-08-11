@@ -89,7 +89,7 @@ Ideal for most individual users looking for a simple setup:
 # Proxy RSSHub core service (Public by default)
 location / {
     set $upstream_rsshub http://rsshub:1200;
-    proxy_pass $upstream_rsshub/;
+    proxy_pass $upstream_rsshub;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -104,8 +104,9 @@ location ^~ /admin/ {
     # Example: auth_basic_user_file /data/access/1; (where 1 is the Access List ID in NPM)
     auth_basic_user_file /data/access/your_auth_file;
     
+    rewrite ^/admin/(.*)$ /$1 break;
     set $upstream_admin http://rsshub-admin:3000;
-    proxy_pass $upstream_admin/;
+    proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -137,7 +138,7 @@ location @error401 {
 # 3. Proxy RSSHub core service (Public by default)
 location / {
     set $upstream_rsshub http://rsshub:1200;
-    proxy_pass $upstream_rsshub/;
+    proxy_pass $upstream_rsshub;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -148,8 +149,9 @@ location ^~ /admin/ {
     # Enable request authentication (unified verification via /_auth)
     auth_request /_auth;
     
+    rewrite ^/admin/(.*)$ /$1 break;
     set $upstream_admin http://rsshub-admin:3000;
-    proxy_pass $upstream_admin/;
+    proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -174,7 +176,7 @@ location /outpost.goauthentik.io {
 # 2. Proxy RSSHub core service (Public by default)
 location / {
     set $upstream_rsshub http://rsshub:1200;
-    proxy_pass $upstream_rsshub/;
+    proxy_pass $upstream_rsshub;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -187,8 +189,9 @@ location ^~ /admin/ {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header       Set-Cookie $auth_cookie;
     
+    rewrite ^/admin/(.*)$ /$1 break;
     set $upstream_admin http://rsshub-admin:3000;
-    proxy_pass $upstream_admin/;
+    proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
