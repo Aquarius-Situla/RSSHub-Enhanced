@@ -104,8 +104,9 @@ location ^~ /admin/ {
     # 例如：auth_basic_user_file /data/access/1; (其中 1 是 NPM 里 Access List 的 ID)
     auth_basic_user_file /data/access/your_auth_file;
     
-    rewrite ^/admin/(.*)$ /$1 break;
+    # 必须把 set 放在 rewrite 前面！
     set $upstream_admin http://rsshub-admin:3000;
+    rewrite ^/admin/(.*)$ /$1 break;
     proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -149,9 +150,21 @@ location ^~ /admin/ {
     # 开启请求鉴权（统一经由 /_auth 校验）
     auth_request /_auth;
     
-    rewrite ^/admin/(.*)$ /$1 break;
+    # 必须把 set 放在 rewrite 前面！
     set $upstream_admin http://rsshub-admin:3000;
+    rewrite ^/admin/(.*)$ /$1 break;
     proxy_pass $upstream_admin;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 5. 临时测试路由（无需鉴权，仅用于本地开发调试）
+location ^~ /temp/ {
+    # 必须把 set 放在 rewrite 前面！
+    set $upstream_temp http://rsshub-admin:3000;
+    rewrite ^/temp/(.*)$ /$1 break;
+    proxy_pass $upstream_temp;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -189,8 +202,9 @@ location ^~ /admin/ {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header       Set-Cookie $auth_cookie;
     
-    rewrite ^/admin/(.*)$ /$1 break;
+    # 必须把 set 放在 rewrite 前面！
     set $upstream_admin http://rsshub-admin:3000;
+    rewrite ^/admin/(.*)$ /$1 break;
     proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;

@@ -104,8 +104,9 @@ location ^~ /admin/ {
     # Example: auth_basic_user_file /data/access/1; (where 1 is the Access List ID in NPM)
     auth_basic_user_file /data/access/your_auth_file;
     
-    rewrite ^/admin/(.*)$ /$1 break;
+    # set must come before rewrite
     set $upstream_admin http://rsshub-admin:3000;
+    rewrite ^/admin/(.*)$ /$1 break;
     proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -149,9 +150,21 @@ location ^~ /admin/ {
     # Enable request authentication (unified verification via /_auth)
     auth_request /_auth;
     
-    rewrite ^/admin/(.*)$ /$1 break;
+    # set must come before rewrite
     set $upstream_admin http://rsshub-admin:3000;
+    rewrite ^/admin/(.*)$ /$1 break;
     proxy_pass $upstream_admin;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+# 5. Temporary test route (no auth, for local development use only)
+location ^~ /temp/ {
+    # set must come before rewrite
+    set $upstream_temp http://rsshub-admin:3000;
+    rewrite ^/temp/(.*)$ /$1 break;
+    proxy_pass $upstream_temp;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -189,8 +202,9 @@ location ^~ /admin/ {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header       Set-Cookie $auth_cookie;
     
-    rewrite ^/admin/(.*)$ /$1 break;
+    # set must come before rewrite
     set $upstream_admin http://rsshub-admin:3000;
+    rewrite ^/admin/(.*)$ /$1 break;
     proxy_pass $upstream_admin;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
