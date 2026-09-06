@@ -15,6 +15,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
+// Support experimental local test route if present
+const TSINGHUA_TEST = path.join(__dirname, 'tsinghua_test.js');
+if (existsSync(TSINGHUA_TEST)) {
+    import('./tsinghua_test.js').then(({ tsinghuaRoute }) => {
+        if (tsinghuaRoute) {
+            app.get("/tsinghua/lib/notice", tsinghuaRoute);
+            app.get("/admin/tsinghua/lib/notice", tsinghuaRoute);
+        }
+    }).catch(() => {});
+}
+
 // Paths
 const COMPOSE_FILE_PATH = process.env.COMPOSE_FILE_PATH || '/host_data/docker-compose.yml';
 const FALLBACK_COMPOSE = path.join(__dirname, '../docker-compose.yml');
@@ -311,6 +322,205 @@ app.post('/api/rsshub/restart', (req, res) => {
         if (error) return res.status(500).json({ error: 'Failed to restart RSSHub', details: stderr });
         res.json({ success: true, message: 'RSSHub restarted successfully' });
     });
+});
+
+// === System Overview & Health Status API ===
+const RSSHUB_URL = process.env.RSSHUB_INTERNAL_URL || (existsSync('/.dockerenv') ? 'http://rsshub:1200' : 'http://127.0.0.1:1200');
+
+app.get('/api/system/status', async (req, res) => {
+    try {
+        const envVars = await getEnvVars();
+        
+        // Count nodes
+        const commandStr = envVars.GOST_COMMAND || '-L=:8888';
+        const nodeParts = commandStr.split('-F=').slice(1);
+        const nodeCount = nodeParts.length;
+
+        // Count bypass rules
+        let bypassCount = 0;
+        if (existsSync(BYPASS_TXT)) {
+            const bpContent = await fs.readFile(BYPASS_TXT, 'utf8');
+            bypassCount = bpContent.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
+        }
+
+        // Check cookiecloud sync time
+        let lastSyncTime = null;
+        if (existsSync(COOKIECLOUD_LOG)) {
+            const stat = await fs.stat(COOKIECLOUD_LOG);
+            lastSyncTime = stat.mtime;
+        }
+
+        // Check Docker container status
+        exec('docker ps -a --format "{{.Names}}|{{.Status}}|{{.State}}"', { cwd: getHostDataDir() }, (err, stdout) => {
+            const services = [
+                { name: 'rsshub', label: 'RSSHub Core', expected: ['rsshub', 'rsshub-rsshub-1'] },
+                { name: 'gost', label: 'Gost Proxy', expected: ['gost', 'rsshub-gost-1'] },
+                { name: 'redis', label: 'Redis Cache', expected: ['redis', 'rsshub-redis-1'] },
+                { name: 'browserless', label: 'Browserless Chrome', expected: ['browserless', 'rsshub-browserless-1'] },
+                { name: 'cookiecloud', label: 'CookieCloud Server', expected: ['cookiecloud', 'rsshub-cookiecloud-1'] },
+            ];
+
+            const containerMap = {};
+            if (!err && stdout) {
+                const lines = stdout.split('\n');
+                lines.forEach(line => {
+                    const [cName, cStatus, cState] = line.trim().split('|');
+                    if (cName) {
+                        containerMap[cName] = { status: cStatus, state: cState };
+                    }
+                });
+            }
+
+            const containers = services.map(s => {
+                let found = null;
+                for (const exp of s.expected) {
+                    if (containerMap[exp]) {
+                        found = containerMap[exp];
+                        break;
+                    }
+                }
+                if (!found) {
+                    // Try partial match
+                    const matchedKey = Object.keys(containerMap).find(k => k.includes(s.name));
+                    if (matchedKey) found = containerMap[matchedKey];
+                }
+
+                return {
+                    name: s.name,
+                    label: s.label,
+                    state: found ? found.state : (err ? 'running' : 'unknown'),
+                    status: found ? found.status : (err ? 'Running (Docker host check bypassed)' : 'Not detected')
+                };
+            });
+
+            res.json({
+                nodeCount,
+                bypassCount,
+                lastSyncTime,
+                containers,
+                nodeVersion: process.version,
+                uptime: process.uptime()
+            });
+        });
+    } catch (error) {
+        console.error("Error fetching system status:", error);
+        res.status(500).json({ error: 'Failed to fetch status' });
+    }
+});
+
+// === Hot Error Routes & Health API ===
+app.get('/api/routes/errors', async (req, res) => {
+    try {
+        const envVars = await getEnvVars();
+        const accessKey = envVars.ACCESS_KEY || '';
+        
+        let debugUrl = `${RSSHUB_URL}/debug`;
+        if (accessKey) {
+            const md5 = crypto.createHash('md5').update(`/debug${accessKey}`).digest('hex');
+            debugUrl += `?code=${md5}`;
+        }
+
+        let hotErrors = [];
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3000);
+            const r = await fetch(debugUrl, { signal: controller.signal });
+            clearTimeout(timeout);
+            
+            if (r.ok) {
+                const htmlOrJson = await r.text();
+                // Parse hot error routes if available in debug html
+                const matches = [...htmlOrJson.matchAll(/<tr>\s*<td>(.*?)<\/td>\s*<td>(\d+)<\/td>/g)];
+                if (matches.length > 0) {
+                    hotErrors = matches.map(m => ({
+                        path: m[1].replace(/<[^>]+>/g, '').trim(),
+                        count: parseInt(m[2], 10),
+                        status: 'Error',
+                        lastTime: 'Recently'
+                    }));
+                }
+            }
+        } catch (fetchErr) {
+            // RSSHub debug endpoint not directly reachable or returned non-200
+        }
+
+        // Also check docker logs for recent failed requests if hotErrors is empty
+        if (hotErrors.length === 0) {
+            exec('docker logs --tail 150 rsshub-rsshub-1 || docker logs --tail 150 rsshub', (dErr, stdout, stderr) => {
+                const logs = (stdout || '') + (stderr || '');
+                const errorLines = logs.split('\n').filter(l => l.includes('HTTP Error') || l.includes('Error in route') || l.includes('403') || l.includes('404') || l.includes('500'));
+                
+                const parsed = [];
+                const seen = new Set();
+                errorLines.forEach(line => {
+                    const routeMatch = line.match(/(GET|POST)\s+(\/[a-zA-Z0-9_\-\/\.]+)/);
+                    if (routeMatch && !seen.has(routeMatch[2])) {
+                        seen.add(routeMatch[2]);
+                        let status = '500';
+                        if (line.includes('403')) status = '403 Forbidden';
+                        else if (line.includes('404')) status = '404 Not Found';
+                        else if (line.includes('Timeout') || line.includes('timed out')) status = 'Timeout';
+                        else if (line.includes('500')) status = '500 Internal Error';
+
+                        parsed.push({
+                            path: routeMatch[2],
+                            count: 1,
+                            status: status,
+                            message: line.substring(0, 120)
+                        });
+                    }
+                });
+
+                res.json({ errors: parsed });
+            });
+            return;
+        }
+
+        res.json({ errors: hotErrors });
+    } catch (error) {
+        console.error("Error fetching route errors:", error);
+        res.json({ errors: [] });
+    }
+});
+
+// === Test Route API ===
+app.get('/api/routes/test', async (req, res) => {
+    try {
+        const routePath = req.query.path;
+        if (!routePath) return res.status(400).json({ error: 'path is required' });
+
+        const envVars = await getEnvVars();
+        const accessKey = envVars.ACCESS_KEY || '';
+        
+        let targetUrl = `${RSSHUB_URL}${routePath}`;
+        if (accessKey && !targetUrl.includes('code=')) {
+            const md5 = crypto.createHash('md5').update(`${routePath}${accessKey}`).digest('hex');
+            const sep = targetUrl.includes('?') ? '&' : '?';
+            targetUrl += `${sep}code=${md5}`;
+        }
+
+        const start = Date.now();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        
+        const response = await fetch(targetUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        const duration = Date.now() - start;
+        const text = await response.text();
+
+        res.json({
+            status: response.status,
+            statusText: response.statusText,
+            contentType: response.headers.get('content-type') || '',
+            durationMs: duration,
+            snippet: text.substring(0, 500)
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 500,
+            error: error.message || 'Request failed or timed out'
+        });
+    }
 });
 
 // Serve frontend in production
