@@ -192,8 +192,6 @@ a {
 
 /* ============================================================================
  * Section 1: Mobile & Tablet Isolation Guard (Screens <= 768px or Touch Devices)
- * Completely hides all desktop sidebar elements on mobile/tablet devices
- * (including iPads, iPhones, and Android) or on screens <= 768px.
  * ============================================================================ */
 @media (max-width: 768px) {
   .desktop-sidebar {
@@ -226,13 +224,11 @@ body.device-mobile {
  * Section 2: Desktop Layout & Authentic Apple Sidebar (Screens > 768px on PC/Mac)
  * ============================================================================ */
 @media (min-width: 769px) {
-  /* Hide mobile top navigation bar and bottom tab bar strictly on desktop */
   html:not(.device-mobile) .apple-top-nav,
   html:not(.device-mobile) .apple-tab-bar {
     display: none !important;
   }
 
-  /* Fixed Apple Translucent Left Sidebar */
   .desktop-sidebar {
     position: fixed;
     top: 0;
@@ -260,7 +256,7 @@ body.device-mobile {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -276,28 +272,20 @@ body.device-mobile {
     border-radius: 3px;
   }
 
-  /* Main Stage Desktop Specification */
   html:not(.device-mobile) .main-stage {
     flex: 1;
     min-width: 0;
     margin-left: 240px;
-    padding: 32px 40px 60px 40px;
+    padding: 24px 32px 60px 32px;
     background-color: var(--stage-desktop-bg);
     min-height: 100vh;
-    box-sizing: border-box;
-  }
-
-  .stage-content-wrap {
-    max-width: 800px;
-    margin: 0 auto;
-    width: 100%;
     box-sizing: border-box;
   }
 }
 
 .stage-content-wrap {
   width: 100%;
-  max-width: 800px;
+  max-width: 680px;
   margin: 0 auto;
   box-sizing: border-box;
 }
@@ -338,6 +326,55 @@ body.device-mobile {
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
+}
+
+/* Sidebar Search Box (sys-memorial spec) */
+.desktop-search-box {
+  position: relative;
+  width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.desktop-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.desktop-search-input-wrapper svg {
+  position: absolute;
+  left: 10px;
+  width: 13px;
+  height: 13px;
+  stroke: var(--text-tertiary);
+  fill: none;
+  pointer-events: none;
+}
+
+.desktop-search-input {
+  width: 100%;
+  height: 28px;
+  padding: 0 10px 0 30px;
+  font-size: 12.5px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: none;
+  border-radius: 7px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.desktop-search-input:focus {
+  background: var(--hover-bg);
+  box-shadow: 0 0 0 2px var(--apple-music-red);
+}
+
+.desktop-search-input::placeholder {
+  color: var(--text-tertiary);
 }
 
 .desktop-nav-group {
@@ -387,6 +424,7 @@ body.device-mobile {
   font-weight: 600 !important;
 }
 
+/* Static fallback pseudo-element indicator */
 .desktop-nav-item.active::before {
   content: "";
   position: absolute;
@@ -397,6 +435,25 @@ body.device-mobile {
   height: 16px;
   border-radius: 2px;
   background-color: var(--apple-music-red) !important;
+}
+
+/* Apple Fluid Dynamic Sliding Red Indicator (sys-memorial spec) */
+.desktop-nav-indicator {
+  position: absolute;
+  left: 2px;
+  width: 3.5px;
+  height: 16px;
+  border-radius: 2px;
+  background-color: var(--apple-music-red) !important;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  will-change: top, height, opacity;
+}
+
+/* When animated JS indicator is active, hide static pseudo-elements */
+.has-desktop-indicator .desktop-nav-item.active::before {
+  display: none !important;
 }
 
 .desktop-nav-icon {
@@ -537,7 +594,6 @@ html.is-standalone .apple-tab-bar {
   bottom: var(--tab-bar-standalone-bottom, 0);
 }
 
-/* Individual Tab Button Item (Anchored to top 48-52px content zone) */
 .apple-tab-item {
   flex: 1;
   display: flex;
@@ -668,65 +724,103 @@ html.is-standalone .apple-tab-bar {
 }
 
 /* ============================================================================
- * Section 6: Authentic Apple Inset Grouped Settings Cards
+ * Section 6: Authentic Apple Inset Grouped Settings Cards (sys-memorial spec)
  * ============================================================================ */
-.settings-section {
-  margin-bottom: 22px;
+.ios-group-container {
+  width: 100%;
+  max-width: 680px;
+  margin: 16px auto 36px auto;
   box-sizing: border-box;
 }
 
+.ios-section-header,
 .settings-section-header {
-  font-size: 11.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  letter-spacing: 0.5px;
-  margin: 18px 0 6px 14px;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  margin: 20px 0 6px 14px !important;
 }
 
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ios-section-header,
+  :root:not([data-theme="dark"]) .settings-section-header {
+    color: rgba(0, 0, 0, 0.45) !important;
+  }
+}
+
+:root[data-theme="light"] .ios-section-header,
+:root[data-theme="light"] .settings-section-header {
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.ios-card,
 .settings-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 10px;
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  border: 0.5px solid var(--separator-subtle);
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
+  background: rgba(36, 36, 40, 0.82) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  margin-bottom: 16px !important;
 }
 
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ios-card,
+  :root:not([data-theme="dark"]) .settings-card {
+    background: #ffffff !important;
+    border: 0.5px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  }
+}
+
+:root[data-theme="light"] .ios-card,
+:root[data-theme="light"] .settings-card {
+  background: #ffffff !important;
+  border: 0.5px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.ios-row,
 .setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 44px;
-  padding: 10px 14px;
-  position: relative;
-  text-decoration: none;
-  color: var(--text-primary);
-  background: transparent;
-  border: none;
-  box-sizing: border-box;
-  transition: background-color 0.15s ease;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 44px !important;
+  padding: 8px 14px !important;
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  text-decoration: none !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.15s ease !important;
+  box-sizing: border-box !important;
 }
 
+.ios-row:hover,
 .setting-item:hover {
-  background: var(--hover-bg);
+  background: var(--hover-bg) !important;
 }
 
-/* Authentic Inset Hairline Separator indented 54px to clear icon badge */
+/* Separator between rows: Indented 54px to clear icon badge */
+.ios-row:not(:last-child)::after,
 .setting-item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 54px;
-  right: 0;
-  bottom: 0;
-  height: 0.5px;
-  background: var(--separator-subtle);
-  pointer-events: none;
+  display: block !important;
+  content: "" !important;
+  position: absolute !important;
+  left: 54px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 0.5px !important;
+  background: var(--separator-subtle) !important;
 }
 
+.ios-row-title,
 .setting-main {
   display: flex;
   align-items: center;
@@ -755,15 +849,134 @@ html.is-standalone .apple-tab-bar {
   color: var(--text-secondary);
 }
 
+.ios-row-accessory,
 .setting-accessory {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-left: 12px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.ios-row-value {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.ios-chevron {
+  width: 13px;
+  height: 13px;
+  stroke: var(--text-secondary);
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), stroke 0.2s ease;
+}
+
+.ios-row.expanded .ios-chevron {
+  transform: rotate(90deg);
+}
+
+/* Accordion Smooth Grid Fold/Expand */
+.ios-accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.ios-row.expanded + .ios-accordion-content,
+.ios-accordion-content.open {
+  grid-template-rows: 1fr;
+}
+
+.ios-accordion-inner {
+  overflow: hidden;
+  padding: 0 16px;
+  transition: padding 0.3s ease;
+}
+
+.ios-row.expanded + .ios-accordion-content .ios-accordion-inner,
+.ios-accordion-content.open .ios-accordion-inner {
+  padding: 8px 16px 14px 16px;
+  border-top: 0.5px solid var(--separator-subtle);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ios-accordion-content.open .ios-accordion-inner {
+    background: rgba(0, 0, 0, 0.02);
+  }
+}
+
+/* Radio Option Items (e.g. Language Selector, Theme Selector) */
+.ios-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 6px;
+}
+
+.ios-option-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.ios-option-item:not(:last-child) {
+  border-bottom: 0.5px solid var(--separator-subtle);
+}
+
+.ios-option-item .ios-checkmark {
+  width: 17px;
+  height: 17px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
   flex-shrink: 0;
 }
 
-/* Apple Badges (Vibrant Rounded Square Icons 28x28 with 7px radius) */
+.ios-option-item.selected {
+  color: var(--blue);
+  font-weight: 500;
+}
+
+.ios-option-item.selected .ios-checkmark {
+  opacity: 1;
+}
+
+.lang-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+}
+
+.lang-primary-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.lang-secondary-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+
+/* ============================================================================
+ * Apple Badges (iOS 18 Dark Specification: Pure black outer + colored inner)
+ * ============================================================================ */
 .ios-badge {
   width: 28px;
   height: 28px;
@@ -773,15 +986,17 @@ html.is-standalone .apple-tab-bar {
   justify-content: center;
   color: #ffffff;
   flex-shrink: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ios-badge svg {
   width: 17px;
   height: 17px;
-  fill: currentColor;
+  stroke: none;
 }
 
+/* Light Mode: Vibrant Colorful Badges */
 .badge-blue { background: linear-gradient(135deg, #007aff 0%, #0a84ff 100%); }
 .badge-green { background: linear-gradient(135deg, #34c759 0%, #30d158 100%); }
 .badge-red { background: linear-gradient(135deg, #ff3b30 0%, #ff453a 100%); }
@@ -790,6 +1005,43 @@ html.is-standalone .apple-tab-bar {
 .badge-teal { background: linear-gradient(135deg, #30b0c7 0%, #40c8e0 100%); }
 .badge-indigo { background: linear-gradient(135deg, #5856d6 0%, #5e5ce6 100%); }
 .badge-gray { background: linear-gradient(135deg, #8e8e93 0%, #98989d 100%); }
+
+/* Dark Mode: Apple iOS 18 Specification (Outer is pure black, thin white ring border, inner SVG is colored) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ios-badge,
+  :root:not([data-theme="light"]) .ios-badge[class*="badge-"] {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  :root:not([data-theme="light"]) .ios-badge.badge-blue svg   { fill: #0a84ff !important; color: #0a84ff !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-purple svg { fill: #bf5af2 !important; color: #bf5af2 !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-red svg    { fill: #ff453a !important; color: #ff453a !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-orange svg { fill: #ff9f0a !important; color: #ff9f0a !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-green svg  { fill: #30d158 !important; color: #30d158 !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-teal svg   { fill: #64d2ff !important; color: #64d2ff !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-indigo svg { fill: #5e5ce6 !important; color: #5e5ce6 !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-gray svg   { fill: #98989d !important; color: #98989d !important; }
+  :root:not([data-theme="light"]) .ios-badge.badge-dark svg   { fill: #ebebf5 !important; color: #ebebf5 !important; }
+}
+
+:root[data-theme="dark"] .ios-badge,
+:root[data-theme="dark"] .ios-badge[class*="badge-"] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+:root[data-theme="dark"] .ios-badge.badge-blue svg   { fill: #0a84ff !important; color: #0a84ff !important; }
+:root[data-theme="dark"] .ios-badge.badge-purple svg { fill: #bf5af2 !important; color: #bf5af2 !important; }
+:root[data-theme="dark"] .ios-badge.badge-red svg    { fill: #ff453a !important; color: #ff453a !important; }
+:root[data-theme="dark"] .ios-badge.badge-orange svg { fill: #ff9f0a !important; color: #ff9f0a !important; }
+:root[data-theme="dark"] .ios-badge.badge-green svg  { fill: #30d158 !important; color: #30d158 !important; }
+:root[data-theme="dark"] .ios-badge.badge-teal svg   { fill: #64d2ff !important; color: #64d2ff !important; }
+:root[data-theme="dark"] .ios-badge.badge-indigo svg { fill: #5e5ce6 !important; color: #5e5ce6 !important; }
+:root[data-theme="dark"] .ios-badge.badge-gray svg   { fill: #98989d !important; color: #98989d !important; }
+:root[data-theme="dark"] .ios-badge.badge-dark svg   { fill: #ebebf5 !important; color: #ebebf5 !important; }
 
 /* Native iOS Switch (Physical Spring Toggle 50x30px) */
 .ios-switch {
@@ -849,8 +1101,8 @@ html.is-standalone .apple-tab-bar {
   background: var(--input-bg);
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 13.5px;
   color: var(--text-primary);
   outline: none;
   transition: all 0.2s;
@@ -886,9 +1138,9 @@ html.is-standalone .apple-tab-bar {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   border-radius: 8px;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   border: none;
@@ -932,9 +1184,9 @@ html.is-standalone .apple-tab-bar {
 /* Stats Matrix Cards */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .stats-card {
@@ -942,7 +1194,7 @@ html.is-standalone .apple-tab-bar {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 0.5px solid var(--separator-subtle);
   box-shadow: var(--card-shadow);
   display: flex;
@@ -950,13 +1202,13 @@ html.is-standalone .apple-tab-bar {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
   margin-top: 4px;
@@ -964,7 +1216,7 @@ html.is-standalone .apple-tab-bar {
 }
 
 .stat-subtext {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-tertiary);
   margin-top: 4px;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HomeView from './views/HomeView.jsx';
 import ProxyView from './views/ProxyView.jsx';
 import DataView from './views/DataView.jsx';
@@ -16,10 +16,113 @@ export function App() {
   const [dataSubTab, setDataSubTab] = useState('sync');
   const [settingsSubTab, setSettingsSubTab] = useState('security');
 
+  // Sidebar search filter
+  const [navSearch, setNavSearch] = useState('');
+
   // Multi-terminal responsive detection using device fingerprinting
   const [isMobile, setIsMobile] = useState(() => {
     return isMobileLayout();
   });
+
+  // Animated Red Nav Indicator Refs & Logic
+  const topContainerRef = useRef(null);
+  const indicatorRef = useRef(null);
+  const prevIndicatorTopRef = useRef(null);
+
+  // Active key identifier for desktop sidebar
+  const currentNavKey = (() => {
+    if (activeTab === 'home') return `home-${homeSubTab}`;
+    if (activeTab === 'proxy') return `proxy-${proxySubTab}`;
+    if (activeTab === 'data') return `data-${dataSubTab}`;
+    if (activeTab === 'settings') return `settings-${settingsSubTab}`;
+    return 'home-overview';
+  })();
+
+  const moveRedIndicator = (toY, animate = true) => {
+    const indicator = indicatorRef.current;
+    if (!indicator || typeof toY !== 'number') return;
+
+    const fromY = prevIndicatorTopRef.current;
+    prevIndicatorTopRef.current = toY;
+
+    if (!animate || fromY === null || Math.abs(toY - fromY) < 1) {
+      indicator.style.top = `${toY}px`;
+      indicator.style.height = '16px';
+      indicator.style.opacity = '1';
+      return;
+    }
+
+    indicator.style.opacity = '1';
+    const isDown = toY > fromY;
+
+    // Apple Fluid Shorten-Glide-Elongate Physics (exact sys-memorial algorithm)
+    const keyframes = isDown ? [
+      { top: `${fromY}px`, height: '16px', easing: 'cubic-bezier(0.32, 0.72, 0, 1)' },
+      { top: `${fromY + 12}px`, height: '4px', easing: 'cubic-bezier(0.25, 1, 0.5, 1)' },
+      { top: `${toY}px`, height: '4px', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+      { top: `${toY}px`, height: '17.5px', easing: 'ease-out' },
+      { top: `${toY}px`, height: '16px' }
+    ] : [
+      { top: `${fromY}px`, height: '16px', easing: 'cubic-bezier(0.32, 0.72, 0, 1)' },
+      { top: `${fromY}px`, height: '4px', easing: 'cubic-bezier(0.25, 1, 0.5, 1)' },
+      { top: `${toY + 12}px`, height: '4px', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+      { top: `${toY - 1.5}px`, height: '17.5px', easing: 'ease-out' },
+      { top: `${toY}px`, height: '16px' }
+    ];
+
+    const anim = indicator.animate(keyframes, {
+      duration: 300,
+      fill: 'forwards',
+      easing: 'linear'
+    });
+
+    anim.onfinish = () => {
+      indicator.style.top = `${toY}px`;
+      indicator.style.height = '16px';
+    };
+  };
+
+  const syncIndicatorPosition = (animate = true) => {
+    if (!topContainerRef.current) return;
+    const activeItem = topContainerRef.current.querySelector(`.desktop-nav-item[data-nav-key="${currentNavKey}"]`);
+    if (!activeItem) return;
+
+    let top = 0;
+    let curr = activeItem;
+    let found = false;
+    while (curr && curr !== topContainerRef.current) {
+      top += curr.offsetTop;
+      curr = curr.offsetParent;
+      if (curr === topContainerRef.current) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const itemRect = activeItem.getBoundingClientRect();
+      const parentRect = topContainerRef.current.getBoundingClientRect();
+      top = itemRect.top - parentRect.top;
+    }
+    const height = activeItem.offsetHeight || 32;
+    const targetY = top + (height - 16) / 2;
+    moveRedIndicator(targetY, animate);
+  };
+
+  useEffect(() => {
+    document.body.classList.add('has-desktop-indicator');
+    // Initial direct positioning without cross-screen jump
+    const timer1 = setTimeout(() => syncIndicatorPosition(false), 20);
+    const timer2 = setTimeout(() => syncIndicatorPosition(false), 100);
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
+  // Animate indicator when nav key changes
+  useEffect(() => {
+    syncIndicatorPosition(true);
+  }, [currentNavKey, navSearch]);
 
   useEffect(() => {
     initDeviceLayout();
@@ -29,6 +132,7 @@ export function App() {
       initDeviceLayout();
       setIsMobile(isMobileLayout());
       syncStandaloneTabBar();
+      syncIndicatorPosition(false);
     };
 
     window.addEventListener('resize', handleSync, { passive: true });
@@ -38,7 +142,6 @@ export function App() {
     window.addEventListener('pageshow', handleSync);
     window.addEventListener('load', handleSync);
 
-    // Staggered timers for standalone PWA calibration
     setTimeout(syncStandaloneTabBar, 50);
     setTimeout(syncStandaloneTabBar, 150);
     setTimeout(syncStandaloneTabBar, 300);
@@ -121,6 +224,12 @@ export function App() {
     setTimeout(() => setCopiedProfile(false), 1500);
   };
 
+  // Filter helper for sidebar search
+  const matchesSearch = (str) => {
+    if (!navSearch.trim()) return true;
+    return str.toLowerCase().includes(navSearch.trim().toLowerCase());
+  };
+
   return (
     <div className="app-viewport">
       <Toast toast={toast} />
@@ -144,7 +253,14 @@ export function App() {
        * Desktop macOS Translucent Left Sidebar (width 240px)
        * ==================================================================== */}
       <aside className="desktop-sidebar">
-        <div className="desktop-sidebar-top">
+        <div className="desktop-sidebar-top" ref={topContainerRef}>
+          {/* Animated Red Gliding Indicator (Apple Fluid Physics) */}
+          <div
+            id="desktop-nav-indicator"
+            className="desktop-nav-indicator"
+            ref={indicatorRef}
+          />
+
           {/* Brand Header */}
           <div className="desktop-sidebar-brand">
             <div className="desktop-sidebar-brand-icon">
@@ -159,114 +275,158 @@ export function App() {
             </div>
           </div>
 
+          {/* Sidebar Search Box (sys-memorial spec) */}
+          <div className="desktop-search-box">
+            <div className="desktop-search-input-wrapper">
+              <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                className="desktop-search-input"
+                value={navSearch}
+                onChange={e => setNavSearch(e.target.value)}
+                placeholder={t('Search', '搜索')}
+              />
+            </div>
+          </div>
+
           {/* Section 1: Home Portal */}
           <div className="desktop-nav-group">
             <div className="desktop-nav-header">{t('Portal Hub', '主页中心')}</div>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'home' && homeSubTab === 'overview' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('home', 'overview')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="square.grid.2x2.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('System Overview', '运行概览')}</span>
-            </button>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'home' && homeSubTab === 'routes' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('home', 'routes')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="safari.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Route Navigator', '路由导航')}</span>
-            </button>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'home' && homeSubTab === 'errors' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('home', 'errors')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="exclamationmark.triangle.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Error Routes', '异常路由')}</span>
-            </button>
+            {matchesSearch(t('System Overview', '运行概览')) && (
+              <button
+                type="button"
+                data-nav-key="home-overview"
+                className={`desktop-nav-item ${currentNavKey === 'home-overview' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('home', 'overview')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="square.grid.2x2.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('System Overview', '运行概览')}</span>
+              </button>
+            )}
+            {matchesSearch(t('Route Navigator', '路由导航')) && (
+              <button
+                type="button"
+                data-nav-key="home-routes"
+                className={`desktop-nav-item ${currentNavKey === 'home-routes' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('home', 'routes')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="safari.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Route Navigator', '路由导航')}</span>
+              </button>
+            )}
+            {matchesSearch(t('Error Routes', '异常路由')) && (
+              <button
+                type="button"
+                data-nav-key="home-errors"
+                className={`desktop-nav-item ${currentNavKey === 'home-errors' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('home', 'errors')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="exclamationmark.triangle.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Error Routes', '异常路由')}</span>
+              </button>
+            )}
           </div>
 
           {/* Section 2: Network & Proxy */}
           <div className="desktop-nav-group">
             <div className="desktop-nav-header">{t('Network & Proxy', '网络代理')}</div>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'proxy' && proxySubTab === 'nodes' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('proxy', 'nodes')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="network" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Proxy Nodes', '代理节点')}</span>
-            </button>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'proxy' && proxySubTab === 'bypass' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('proxy', 'bypass')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="shield.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Bypass Rules', '分流规则')}</span>
-            </button>
+            {matchesSearch(t('Proxy Nodes', '代理节点')) && (
+              <button
+                type="button"
+                data-nav-key="proxy-nodes"
+                className={`desktop-nav-item ${currentNavKey === 'proxy-nodes' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('proxy', 'nodes')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="network" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Proxy Nodes', '代理节点')}</span>
+              </button>
+            )}
+            {matchesSearch(t('Bypass Rules', '分流规则')) && (
+              <button
+                type="button"
+                data-nav-key="proxy-bypass"
+                className={`desktop-nav-item ${currentNavKey === 'proxy-bypass' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('proxy', 'bypass')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="shield.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Bypass Rules', '分流规则')}</span>
+              </button>
+            )}
           </div>
 
           {/* Section 3: Data & Sync */}
           <div className="desktop-nav-group">
             <div className="desktop-nav-header">{t('Data & Credentials', '数据同步')}</div>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'data' && dataSubTab === 'sync' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('data', 'sync')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="cylinder.split.1x2.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">CookieCloud</span>
-            </button>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'data' && dataSubTab === 'keys' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('data', 'keys')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="key.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Platform API Keys', '平台凭据')}</span>
-            </button>
+            {matchesSearch('CookieCloud') && (
+              <button
+                type="button"
+                data-nav-key="data-sync"
+                className={`desktop-nav-item ${currentNavKey === 'data-sync' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('data', 'sync')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="cylinder.split.1x2.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">CookieCloud</span>
+              </button>
+            )}
+            {matchesSearch(t('Platform API Keys', '平台凭据')) && (
+              <button
+                type="button"
+                data-nav-key="data-keys"
+                className={`desktop-nav-item ${currentNavKey === 'data-keys' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('data', 'keys')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="key.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Platform API Keys', '平台凭据')}</span>
+              </button>
+            )}
           </div>
 
           {/* Section 4: System & Preferences */}
           <div className="desktop-nav-group">
             <div className="desktop-nav-header">{t('System & Security', '系统管理')}</div>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'settings' && settingsSubTab === 'security' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('settings', 'security')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="lock.fill" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Access Control', '安全控制')}</span>
-            </button>
-            <button
-              type="button"
-              className={`desktop-nav-item ${activeTab === 'settings' && settingsSubTab === 'preferences' ? 'active' : ''}`}
-              onClick={() => handleSelectDesktopNav('settings', 'preferences')}
-            >
-              <span className="desktop-nav-icon">
-                <SFSymbol name="slider.horizontal.3" size={17} />
-              </span>
-              <span className="desktop-nav-label">{t('Preferences', '偏好设置')}</span>
-            </button>
+            {matchesSearch(t('Access Control', '安全控制')) && (
+              <button
+                type="button"
+                data-nav-key="settings-security"
+                className={`desktop-nav-item ${currentNavKey === 'settings-security' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('settings', 'security')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="lock.fill" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Access Control', '安全控制')}</span>
+              </button>
+            )}
+            {matchesSearch(t('Preferences', '偏好设置')) && (
+              <button
+                type="button"
+                data-nav-key="settings-preferences"
+                className={`desktop-nav-item ${currentNavKey === 'settings-preferences' ? 'active' : ''}`}
+                onClick={() => handleSelectDesktopNav('settings', 'preferences')}
+              >
+                <span className="desktop-nav-icon">
+                  <SFSymbol name="slider.horizontal.3" size={17} />
+                </span>
+                <span className="desktop-nav-label">{t('Preferences', '偏好设置')}</span>
+              </button>
+            )}
           </div>
         </div>
 
