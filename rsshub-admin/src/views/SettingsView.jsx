@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SegmentedControl from '../components/SegmentedControl.jsx';
+import SFSymbol from '../components/SFSymbols.jsx';
 
 export function SettingsView({ t, showToast, initialSubTab, isMobile, currentLang, onLanguageChange, currentTheme, onThemeChange }) {
   const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'security');
@@ -75,11 +76,6 @@ export function SettingsView({ t, showToast, initialSubTab, isMobile, currentLan
 
   return (
     <div className="fade-in">
-      <div className="page-header">
-        <h1 className="page-title">{t('Security & System Preferences', '安全与系统设置')}</h1>
-        <p className="page-subtitle">{t('Configure route access control keys, SSO protection, and display preferences', '配置 RSSHub 访问控制密钥、反代与单点登录安全策略及显示偏好')}</p>
-      </div>
-
       <SegmentedControl
         options={segmentedOptions}
         activeKey={activeSubTab}
@@ -95,73 +91,104 @@ export function SettingsView({ t, showToast, initialSubTab, isMobile, currentLan
               <div className="setting-item">
                 <div className="setting-main">
                   <div className="ios-badge badge-red">
-                    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    <SFSymbol name="lock.fill" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Access Control Key (ACCESS_KEY)', '访问控制密钥 (ACCESS_KEY)')}</span>
-                    <span className="setting-desc">{t('Protects your RSSHub instance from unauthorized scraping', '防止公开实例被未经授权的高频爬虫滥用消耗资源')}</span>
+                    <span className="setting-title">{t('Current ACCESS_KEY', '当前访问控制密钥')}</span>
+                    <span className="setting-desc">{t('Protects all RSS feeds from unauthorized scraping', '用于 RSS 路由参数鉴权防盗链 (?code=md5)')}</span>
                   </div>
                 </div>
-                <div className="setting-accessory" style={{ width: '50%' }}>
+                <div className="setting-accessory" style={{ width: '220px' }}>
                   <input
+                    type="text"
                     className="ios-input"
-                    style={{ fontFamily: 'var(--sys-mono)', fontSize: '13.5px' }}
+                    style={{ fontFamily: 'var(--sys-mono)', fontSize: '13px' }}
                     value={accessKey}
                     onChange={e => setAccessKey(e.target.value)}
-                    placeholder={t('Enter secure key...', '输入访问密钥...')}
+                    placeholder={t('Leave empty to disable auth', '留空则不开启访问限制')}
                   />
-                  <button
-                    className="ios-btn secondary small"
-                    onClick={handleGenerateRandomKey}
-                    title={t('Generate strong random key', '生成强随机密钥')}
-                  >
-                    🎲
-                  </button>
                 </div>
               </div>
 
               {md5Hash && (
                 <div className="setting-item">
                   <div className="setting-main">
-                    <div className="ios-badge badge-indigo">
-                      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    <div className="ios-badge badge-gray">
+                      <SFSymbol name="key.fill" size={16} />
                     </div>
                     <div className="setting-info">
-                      <span className="setting-title">{t('MD5 Digest (For ?code= authentication)', 'MD5 哈希校验指纹 (用于 ?code=)')}</span>
-                      <span className="setting-desc">{t('Query parameter signature required when accessing protected routes', '在阅读器订阅地址后追加 ?code=md5(path + access_key)')}</span>
+                      <span className="setting-title">{t('Global MD5 Verification Code', '全局 MD5 鉴权摘要')}</span>
+                      <span className="setting-desc" style={{ fontFamily: 'var(--sys-mono)', wordBreak: 'break-all' }}>
+                        {md5Hash}
+                      </span>
                     </div>
                   </div>
                   <div className="setting-accessory">
-                    <span style={{ fontFamily: 'var(--sys-mono)', fontSize: '13px', background: 'var(--input-bg)', padding: '6px 12px', borderRadius: '6px', userSelect: 'all' }}>
-                      {md5Hash}
-                    </span>
+                    <button
+                      type="button"
+                      className="ios-btn secondary small"
+                      onClick={() => {
+                        navigator.clipboard.writeText(md5Hash);
+                        showToast(t('MD5 hash copied to clipboard!', 'MD5 校验码已复制！'));
+                      }}
+                    >
+                      {t('Copy', '复制')}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+              <button
+                type="button"
+                className="ios-btn secondary"
+                onClick={handleGenerateRandomKey}
+              >
+                🎲 {t('Generate Random Key', '生成强随机密钥')}
+              </button>
+              <button
+                type="button"
+                className="ios-btn secondary"
+                onClick={handleRestartRsshub}
+                disabled={restarting}
+              >
+                {restarting ? t('Restarting...', '重启中...') : t('Restart RSSHub', '重启 RSSHub')}
+              </button>
+              <button
+                type="button"
+                className="ios-btn primary"
+                onClick={handleSaveConfig}
+                disabled={saving}
+              >
+                {saving ? t('Saving...', '保存中...') : t('Save ACCESS_KEY', '保存密钥')}
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '28px' }}>
-            <button className="ios-btn primary" onClick={handleSaveConfig} disabled={saving}>
-              💾 {saving ? t('Saving...', '保存中...') : t('Save ACCESS_KEY', '保存访问密钥')}
-            </button>
-            <button className="ios-btn secondary" onClick={handleRestartRsshub} disabled={restarting}>
-              🔄 {restarting ? t('Restarting...', '重启中...') : t('Restart RSSHub', '重启 RSSHub 生效')}
-            </button>
-          </div>
-
-          {/* Reverse Proxy & SSO Advisory */}
+          {/* Reverse Proxy & SSO Advisory Card */}
           <div className="settings-section">
-            <div className="settings-section-header">{t('SSO & Gateway Security (Situla Auth / NPM)', '单点登录与反向代理安全规范')}</div>
-            <div className="settings-card" style={{ padding: '18px' }}>
-              <div style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-                <p style={{ marginBottom: '10px' }}>
-                  🛡️ <strong>{t('Zero-File SSO Injection Support', '原生支持 Situla Auth / NPM 单点登录')}：</strong>
-                  {t('This portal supports Zero-File SSO Injection via Nginx Proxy Manager. When deployed behind NPM with Situla Auth or HTTP Basic Auth, administration privileges are seamlessly verified at the gateway level.', '本管理系统无缝支持通过 Nginx Proxy Manager 配合 Situla Auth 容器实现零代码单点登录注入与网关层权限隔离。')}
-                </p>
-                <div style={{ background: 'var(--input-bg)', padding: '10px 14px', borderRadius: '8px', fontFamily: 'var(--sys-mono)', fontSize: '12px', color: 'var(--text-primary)' }}>
-                  location ^~ /admin/ &#123; auth_basic "RSSHub-Admin"; auth_basic_user_file /data/access/1; &#125;
+            <div className="settings-section-header">{t('SSO & Reverse Proxy Architecture', '反向代理与单点登录架构')}</div>
+            <div className="settings-card" style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div className="ios-badge badge-blue">
+                  <SFSymbol name="network" size={16} />
                 </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '2px' }}>
+                    {t('Situla Auth & Nginx Proxy Manager Integration', 'Situla Auth / NPM 反向代理接入指南')}
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {t(
+                      'This management portal is decoupled on internal port 3000. For public access, route through Nginx Proxy Manager with Situla Auth forward authentication headers, keeping RSSHub RSS feed endpoints public and fast.',
+                      '本管理门户运行于内部 3000 端口。推荐在 NPM 反代层挂载 Situla Auth 前置认证，管理控制台享受 SSO 保护的同时，外部 RSS 客户端订阅路由直接直通，兼顾极致安全与高速解析。'
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--input-bg)', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--sys-mono)' }}>
+                npm: 127.0.0.1:81 ➔ Forward Auth: http://situla-auth:3000/api/verify ➔ upstream: rsshub-admin:3000
               </div>
             </div>
           </div>
@@ -171,56 +198,103 @@ export function SettingsView({ t, showToast, initialSubTab, isMobile, currentLan
       {/* Preferences SubView */}
       {activeSubTab === 'preferences' && (
         <div>
+          {/* Language Preference */}
           <div className="settings-section">
-            <div className="settings-section-header">{t('Interface Display Preferences', '界面与显示偏好')}</div>
+            <div className="settings-section-header">{t('Language & Region', '语言与地区')}</div>
             <div className="settings-card">
-              {/* Language Selection */}
-              <div className="setting-item">
+              <div className="setting-item" onClick={() => onLanguageChange('auto')} style={{ cursor: 'pointer' }}>
                 <div className="setting-main">
-                  <div className="ios-badge badge-blue">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                  <div className="ios-badge badge-teal">
+                    <SFSymbol name="globe" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Global Language', '界面语言 (Language)')}</span>
-                    <span className="setting-desc">{t('System auto-detect or manual override', '自动根据浏览器指纹或强制指定显示语言')}</span>
+                    <span className="setting-title">{t('Follow System', '跟随系统语言')}</span>
+                    <span className="setting-desc">{t('Detect browser language automatically', '自动匹配客户端系统首选语言')}</span>
                   </div>
                 </div>
                 <div className="setting-accessory">
-                  <select
-                    className="ios-input"
-                    style={{ width: '130px', padding: '6px 10px', fontSize: '13.5px' }}
-                    value={currentLang}
-                    onChange={e => onLanguageChange(e.target.value)}
-                  >
-                    <option value="auto">{t('Auto (System)', '跟随系统')}</option>
-                    <option value="zh">简体中文</option>
-                    <option value="en">English</option>
-                  </select>
+                  {currentLang === 'auto' && <span style={{ color: 'var(--blue)', fontWeight: 'bold' }}>✓</span>}
                 </div>
               </div>
 
-              {/* Theme Selection */}
-              <div className="setting-item">
+              <div className="setting-item" onClick={() => onLanguageChange('zh')} style={{ cursor: 'pointer' }}>
                 <div className="setting-main">
-                  <div className="ios-badge badge-purple">
-                    <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+                  <div className="ios-badge badge-orange">
+                    <span style={{ fontSize: '14px', fontWeight: 700 }}>中</span>
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Appearance Theme', '外观主题 (Appearance)')}</span>
-                    <span className="setting-desc">{t('Apple dark mode or frosted light mode', '纯正深黑色暗黑模式或高通透浅色模式')}</span>
+                    <span className="setting-title">简体中文 (Simplified Chinese)</span>
+                    <span className="setting-desc">中文界面显示</span>
                   </div>
                 </div>
                 <div className="setting-accessory">
-                  <select
-                    className="ios-input"
-                    style={{ width: '130px', padding: '6px 10px', fontSize: '13.5px' }}
-                    value={currentTheme}
-                    onChange={e => onThemeChange(e.target.value)}
-                  >
-                    <option value="auto">{t('Auto (System)', '跟随系统')}</option>
-                    <option value="dark">{t('Dark (Apple Black)', '深色 (黑曜)')}</option>
-                    <option value="light">{t('Light (Frosted)', '浅色 (清润)')}</option>
-                  </select>
+                  {currentLang === 'zh' && <span style={{ color: 'var(--blue)', fontWeight: 'bold' }}>✓</span>}
+                </div>
+              </div>
+
+              <div className="setting-item" onClick={() => onLanguageChange('en')} style={{ cursor: 'pointer' }}>
+                <div className="setting-main">
+                  <div className="ios-badge badge-indigo">
+                    <span style={{ fontSize: '14px', fontWeight: 700 }}>EN</span>
+                  </div>
+                  <div className="setting-info">
+                    <span className="setting-title">English</span>
+                    <span className="setting-desc">English user interface</span>
+                  </div>
+                </div>
+                <div className="setting-accessory">
+                  {currentLang === 'en' && <span style={{ color: 'var(--blue)', fontWeight: 'bold' }}>✓</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Theme Appearance */}
+          <div className="settings-section">
+            <div className="settings-section-header">{t('Appearance & Theme', '外观与主题')}</div>
+            <div className="settings-card">
+              <div className="setting-item" onClick={() => onThemeChange('auto')} style={{ cursor: 'pointer' }}>
+                <div className="setting-main">
+                  <div className="ios-badge badge-gray">
+                    <SFSymbol name="slider.horizontal.3" size={16} />
+                  </div>
+                  <div className="setting-info">
+                    <span className="setting-title">{t('Auto (Match System)', '跟随系统外观')}</span>
+                    <span className="setting-desc">{t('Switch automatically based on macOS / iOS system dark mode', '根据操作系统当前明暗模式自动无缝切换')}</span>
+                  </div>
+                </div>
+                <div className="setting-accessory">
+                  {currentTheme === 'auto' && <span style={{ color: 'var(--blue)', fontWeight: 'bold' }}>✓</span>}
+                </div>
+              </div>
+
+              <div className="setting-item" onClick={() => onThemeChange('dark')} style={{ cursor: 'pointer' }}>
+                <div className="setting-main">
+                  <div className="ios-badge badge-blue">
+                    <span style={{ fontSize: '14px' }}>🌙</span>
+                  </div>
+                  <div className="setting-info">
+                    <span className="setting-title">{t('Dark Mode (Apple Black)', '深色模式 (纯黑/磨砂黑)')}</span>
+                    <span className="setting-desc">{t('Authentic Apple OLED black and frosted glass', '原生 Apple 深黑毛玻璃风格')}</span>
+                  </div>
+                </div>
+                <div className="setting-accessory">
+                  {currentTheme === 'dark' && <span style={{ color: 'var(--blue)', fontWeight: 'bold' }}>✓</span>}
+                </div>
+              </div>
+
+              <div className="setting-item" onClick={() => onThemeChange('light')} style={{ cursor: 'pointer' }}>
+                <div className="setting-main">
+                  <div className="ios-badge badge-yellow">
+                    <span style={{ fontSize: '14px' }}>☀️</span>
+                  </div>
+                  <div className="setting-info">
+                    <span className="setting-title">{t('Light Mode (Frosted Light)', '浅色模式 (通透浅灰)')}</span>
+                    <span className="setting-desc">{t('Crisp high-contrast Apple light mode', '清爽通透的高对比度 Apple 浅色')}</span>
+                  </div>
+                </div>
+                <div className="setting-accessory">
+                  {currentTheme === 'light' && <span style={{ color: 'var(--blue)', fontWeight: 'bold' }}>✓</span>}
                 </div>
               </div>
             </div>
@@ -228,57 +302,35 @@ export function SettingsView({ t, showToast, initialSubTab, isMobile, currentLan
 
           {/* System & Architecture Info */}
           <div className="settings-section">
-            <div className="settings-section-header">{t('System & Architecture Info', '系统与架构信息')}</div>
+            <div className="settings-section-header">{t('System & Architecture', '系统架构与环境')}</div>
             <div className="settings-card">
               <div className="setting-item">
                 <div className="setting-main">
-                  <div className="ios-badge badge-gray">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                  <div className="ios-badge badge-purple">
+                    <SFSymbol name="server.rack" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Application Version', '管理面板版本')}</span>
-                    <span className="setting-desc">Apple HIG Design System Edition</span>
+                    <span className="setting-title">RSSHub Enhanced Core</span>
+                    <span className="setting-desc">Dockerized Containerized Microservice Suite</span>
                   </div>
                 </div>
                 <div className="setting-accessory">
-                  <span style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>v2.5.0 (sys-memorial core)</span>
+                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontFamily: 'var(--sys-mono)' }}>v1.0.0</span>
                 </div>
               </div>
 
               <div className="setting-item">
                 <div className="setting-main">
                   <div className="ios-badge badge-teal">
-                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    <SFSymbol name="shield.fill" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Underlying Stack', '技术底座与微服务架构')}</span>
-                    <span className="setting-desc">Docker Compose / Node.js Express / Vite React 18</span>
+                    <span className="setting-title">{t('Design System', '设计系统规范')}</span>
+                    <span className="setting-desc">Apple Human Interface Guidelines (macOS Sonoma / iOS 17)</span>
                   </div>
                 </div>
                 <div className="setting-accessory">
-                  <span style={{ fontSize: '13.5px', color: 'var(--green)', fontWeight: 600 }}>Active</span>
-                </div>
-              </div>
-
-              <div className="setting-item">
-                <div className="setting-main">
-                  <div className="ios-badge badge-orange">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{t('Open Source License', '开源软件许可证')}</span>
-                    <span className="setting-desc">GNU General Public License v3.0</span>
-                  </div>
-                </div>
-                <div className="setting-accessory">
-                  <a
-                    href="https://github.com/Aquarius-Situla/RSSHub-Enhanced"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: '13px', color: 'var(--blue)' }}
-                  >
-                    GPL-3.0 ↗
-                  </a>
+                  <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 600 }}>PWA Ready</span>
                 </div>
               </div>
             </div>

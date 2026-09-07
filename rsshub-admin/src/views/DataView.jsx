@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SegmentedControl from '../components/SegmentedControl.jsx';
+import SFSymbol from '../components/SFSymbols.jsx';
 
 export function DataView({ t, showToast, initialSubTab, isMobile }) {
   const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'sync');
@@ -97,59 +98,35 @@ export function DataView({ t, showToast, initialSubTab, isMobile }) {
 
   return (
     <div className="fade-in">
-      <div className="page-header">
-        <h1 className="page-title">{t('Data Sources & Sync Hub', '数据源与凭证中心')}</h1>
-        <p className="page-subtitle">{t('Manage CookieCloud automatic decryption and platform API tokens', '管理 CookieCloud 自动解密服务与第三方平台认证凭证')}</p>
-      </div>
-
       <SegmentedControl
         options={segmentedOptions}
         activeKey={activeSubTab}
         onChange={setActiveSubTab}
       />
 
-      {/* CookieCloud Sync SubView */}
+      {/* Sync SubView */}
       {activeSubTab === 'sync' && (
         <div>
           <div className="settings-section">
-            <div className="settings-section-header">{t('CookieCloud Server Credentials', 'CookieCloud 连接凭证')}</div>
+            <div className="settings-section-header">{t('CookieCloud Server Credentials', 'CookieCloud 账号与服务连接')}</div>
             <div className="settings-card">
               <div className="setting-item">
                 <div className="setting-main">
-                  <div className="ios-badge badge-orange">
-                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{t('Server URL', '服务器地址')}</span>
-                    <span className="setting-desc">{t('CookieCloud instance endpoint (e.g. http://...)', 'CookieCloud 服务的 HTTP/HTTPS 地址')}</span>
-                  </div>
-                </div>
-                <div className="setting-accessory" style={{ width: '45%' }}>
-                  <input
-                    className="ios-input"
-                    value={config.server}
-                    onChange={e => setConfig({ ...config, server: e.target.value })}
-                    placeholder="https://cookiecloud.example.com"
-                  />
-                </div>
-              </div>
-
-              <div className="setting-item">
-                <div className="setting-main">
                   <div className="ios-badge badge-blue">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                    <SFSymbol name="network" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">UUID</span>
-                    <span className="setting-desc">{t('Target account identifier', '用于拉取加密数据的用户唯一标识符')}</span>
+                    <span className="setting-title">{t('Server Endpoint', '服务地址')}</span>
+                    <span className="setting-desc">{t('Self-hosted or official CookieCloud endpoint', 'CookieCloud 容器地址')}</span>
                   </div>
                 </div>
-                <div className="setting-accessory" style={{ width: '45%' }}>
+                <div className="setting-accessory" style={{ width: '220px' }}>
                   <input
+                    type="text"
                     className="ios-input"
-                    value={config.uuid}
-                    onChange={e => setConfig({ ...config, uuid: e.target.value })}
-                    placeholder="b17ER..."
+                    value={config.server || ''}
+                    onChange={e => setConfig({ ...config, server: e.target.value })}
+                    placeholder="http://cookiecloud:8088"
                   />
                 </div>
               </div>
@@ -157,127 +134,165 @@ export function DataView({ t, showToast, initialSubTab, isMobile }) {
               <div className="setting-item">
                 <div className="setting-main">
                   <div className="ios-badge badge-purple">
-                    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    <SFSymbol name="key.fill" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Decryption Password', '解密密码')}</span>
-                    <span className="setting-desc">{t('AES decryption secret key', '用于客户端解密的端对端通信密码')}</span>
+                    <span className="setting-title">UUID</span>
+                    <span className="setting-desc">{t('CookieCloud browser extension user UUID', 'CookieCloud 扩展端生成的设备唯一识别码')}</span>
                   </div>
                 </div>
-                <div className="setting-accessory" style={{ width: '45%' }}>
+                <div className="setting-accessory" style={{ width: '220px' }}>
                   <input
+                    type="text"
                     className="ios-input"
+                    style={{ fontFamily: 'var(--sys-mono)', fontSize: '13px' }}
+                    value={config.uuid || ''}
+                    onChange={e => setConfig({ ...config, uuid: e.target.value })}
+                    placeholder="e.g. 550e8400-e29b-41d4-..."
+                  />
+                </div>
+              </div>
+
+              <div className="setting-item">
+                <div className="setting-main">
+                  <div className="ios-badge badge-teal">
+                    <SFSymbol name="lock.fill" size={16} />
+                  </div>
+                  <div className="setting-info">
+                    <span className="setting-title">{t('End-to-End Password', '端对端加密密码')}</span>
+                    <span className="setting-desc">{t('AES decryption password for synced cookies', '用于本地运行 decrypt.py 解密 Cookie 数据')}</span>
+                  </div>
+                </div>
+                <div className="setting-accessory" style={{ width: '220px' }}>
+                  <input
                     type="password"
-                    value={config.password}
+                    className="ios-input"
+                    value={config.password || ''}
                     onChange={e => setConfig({ ...config, password: e.target.value })}
                     placeholder="••••••••"
                   />
                 </div>
               </div>
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+              <button
+                type="button"
+                className="ios-btn secondary"
+                onClick={handleSync}
+                disabled={syncing}
+              >
+                {syncing ? t('Syncing...', '同步中...') : t('Force Sync Now', '立即执行解密同步')}
+              </button>
+              <button
+                type="button"
+                className="ios-btn primary"
+                onClick={handleSaveCookieCloud}
+                disabled={saving}
+              >
+                {saving ? t('Saving...', '保存中...') : t('Save Credentials', '保存配置')}
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '28px' }}>
-            <button className="ios-btn secondary" onClick={handleSaveCookieCloud} disabled={saving}>
-              💾 {saving ? t('Saving...', '保存中...') : t('Save Credentials', '保存凭证')}
-            </button>
-            <button className="ios-btn primary" onClick={handleSync} disabled={syncing}>
-              🔄 {syncing ? t('Syncing...', '正在同步...') : t('Force Sync & Reload', '立即解密并同步')}
-            </button>
-          </div>
-
-          {/* Terminal Logs Viewer */}
+          {/* Decrypt & Sync Console Viewer */}
           <div className="settings-section">
-            <div className="settings-section-header">{t('Decryption & Sync Log (Console)', '同步与解密控制台日志')}</div>
-            <div className="apple-terminal">
-              <div className="apple-terminal-header">
-                <div className="terminal-dots">
-                  <div className="terminal-dot dot-red"></div>
-                  <div className="terminal-dot dot-yellow"></div>
-                  <div className="terminal-dot dot-green"></div>
-                </div>
-                <div className="terminal-title">update_cookies.log</div>
-                <button
-                  style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '11px' }}
-                  onClick={fetchLogs}
-                >
-                  🔄
-                </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', paddingLeft: '14px', paddingRight: '14px' }}>
+              <div className="settings-section-header" style={{ margin: 0, padding: 0 }}>
+                {t('Console Output (update_cookies.log)', '解密执行控制台日志 (update_cookies.log)')}
               </div>
-              <div className="apple-terminal-body">
-                {logs || t('No synchronization logs recorded yet.', '暂无同步与解密执行日志。')}
-              </div>
+              <button
+                type="button"
+                className="ios-btn secondary"
+                style={{ padding: '3px 8px', fontSize: '11.5px' }}
+                onClick={fetchLogs}
+              >
+                {t('Refresh Log', '刷新日志')}
+              </button>
+            </div>
+
+            <div className="settings-card" style={{ padding: '14px', background: 'rgba(20, 20, 22, 0.95)' }}>
+              <pre
+                style={{
+                  margin: 0,
+                  fontFamily: 'var(--sys-mono)',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                  color: 'rgba(255, 255, 255, 0.85)',
+                  maxHeight: '220px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all'
+                }}
+              >
+                {logs || t('# No logs recorded yet or log file empty.', '# 暂无日志输出或日志文件为空。')}
+              </pre>
             </div>
           </div>
         </div>
       )}
 
-      {/* Platform Keys SubView */}
+      {/* Keys SubView */}
       {activeSubTab === 'keys' && (
         <div>
           <div className="settings-section">
-            <div className="settings-section-header">{t('Third-Party Service Tokens', '第三方平台认证配置')}</div>
+            <div className="settings-section-header">{t('Decoupled Platform API Keys', '独立第三方平台凭据')}</div>
             <div className="settings-card">
-              {/* YouTube Key */}
               <div className="setting-item">
                 <div className="setting-main">
-                  <div className="ios-badge badge-red">
-                    <svg viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
+                  <div className="ios-badge badge-blue">
+                    <SFSymbol name="safari.fill" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('YouTube Data API v3 Key', 'YouTube API 密钥 (YOUTUBE_KEY)')}</span>
-                    <span className="setting-desc">
-                      {t('Used for YouTube channels/playlists without bot verification blocks', '用于 YouTube 频道与视频 RSS 解析，防止触发机器人拦截')}
-                    </span>
+                    <span className="setting-title">{t('Bilibili VIP UID (BILIBILIUID)', 'B站大会员 UID')}</span>
+                    <span className="setting-desc">{t('Used for 1080P+ high-resolution video streams', '用于 Bilibili 订阅获取 1080P 高清画质')}</span>
                   </div>
                 </div>
-                <div className="setting-accessory" style={{ width: '45%' }}>
+                <div className="setting-accessory" style={{ width: '220px' }}>
                   <input
+                    type="text"
                     className="ios-input"
-                    value={config.youtubeKey || ''}
-                    onChange={e => setConfig({ ...config, youtubeKey: e.target.value })}
-                    placeholder={t('Leave blank if not needed...', '未配置时留空...')}
+                    style={{ fontFamily: 'var(--sys-mono)' }}
+                    value={config.bilibiliUid || ''}
+                    onChange={e => setConfig({ ...config, bilibiliUid: e.target.value })}
+                    placeholder="e.g. 2267573"
                   />
                 </div>
               </div>
 
-              {/* Bilibili UID */}
               <div className="setting-item">
                 <div className="setting-main">
-                  <div className="ios-badge badge-teal">
-                    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5h-2v-2h2zm0-4h-2V7h2z"/></svg>
+                  <div className="ios-badge badge-red">
+                    <SFSymbol name="key.fill" size={16} />
                   </div>
                   <div className="setting-info">
-                    <span className="setting-title">{t('Bilibili UID (BILIBILIUID)', 'Bilibili 账号 UID')}</span>
-                    <span className="setting-desc">
-                      {t('Matched as BILIBILI_COOKIE_{uid} during automatic cookie injection', '同步时将自动将对应 Cookie 映射至 BILIBILI_COOKIE_{uid}')}
-                    </span>
+                    <span className="setting-title">{t('YouTube Data API Key (YOUTUBE_KEY)', 'YouTube Data API 密钥')}</span>
+                    <span className="setting-desc">{t('Official Google Cloud Console Data API v3 key', '用于 YouTube 频道与视频列表稳定订阅')}</span>
                   </div>
                 </div>
-                <div className="setting-accessory" style={{ width: '45%' }}>
+                <div className="setting-accessory" style={{ width: '220px' }}>
                   <input
+                    type="text"
                     className="ios-input"
-                    value={config.bilibiliUid || ''}
-                    onChange={e => setConfig({ ...config, bilibiliUid: e.target.value })}
-                    placeholder="12345678"
+                    style={{ fontFamily: 'var(--sys-mono)', fontSize: '12.5px' }}
+                    value={config.youtubeKey || ''}
+                    onChange={e => setConfig({ ...config, youtubeKey: e.target.value })}
+                    placeholder="AIzaSy..."
                   />
                 </div>
               </div>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="ios-btn primary" onClick={handleSaveKeys} disabled={saving}>
-              💾 {saving ? t('Saving...', '保存中...') : t('Save API Keys', '保存平台凭据')}
-            </button>
-            <a
-              href="https://console.cloud.google.com/apis/credentials"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ios-btn secondary"
-            >
-              🔑 {t('Get Google API Key ↗', '申请 Google API 密钥 ↗')}
-            </a>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+              <button
+                type="button"
+                className="ios-btn primary"
+                onClick={handleSaveKeys}
+                disabled={saving}
+              >
+                {saving ? t('Saving...', '保存中...') : t('Save API Keys', '保存平台凭据')}
+              </button>
+            </div>
           </div>
         </div>
       )}

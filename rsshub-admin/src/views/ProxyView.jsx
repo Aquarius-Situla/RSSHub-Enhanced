@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SegmentedControl from '../components/SegmentedControl.jsx';
+import SFSymbol from '../components/SFSymbols.jsx';
 
 export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
   const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'nodes');
@@ -122,11 +123,6 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
 
   return (
     <div className="fade-in">
-      <div className="page-header">
-        <h1 className="page-title">{t('Network & Proxy Dispatch', '网络与代理调度')}</h1>
-        <p className="page-subtitle">{t('Configure round-robin load-balancing proxies and bypass whitelist rules', '配置 Gost 轮询代理节点池与直连域名白名单分流')}</p>
-      </div>
-
       <SegmentedControl
         options={segmentedOptions}
         activeKey={activeSubTab}
@@ -136,7 +132,7 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
       {/* Nodes Tab */}
       {activeSubTab === 'nodes' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="file"
@@ -145,20 +141,29 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
                 ref={fileInputRef}
                 onChange={handleFileUpload}
               />
-              <button className="ios-btn secondary small" onClick={() => fileInputRef.current.click()}>
-                📥 {t('Import JSON', '导入 JSON')}
+              <button
+                type="button"
+                className="ios-btn secondary"
+                onClick={() => fileInputRef.current.click()}
+              >
+                {t('Import JSON', '导入 JSON')}
               </button>
-              <button className="ios-btn secondary small" onClick={addNode}>
+              <button
+                type="button"
+                className="ios-btn secondary"
+                onClick={addNode}
+              >
                 + {t('Add Node', '添加节点')}
               </button>
             </div>
 
             <button
-              className="ios-btn primary small"
+              type="button"
+              className="ios-btn primary"
               onClick={handleApplyRestart}
               disabled={applying}
             >
-              {applying ? t('Applying...', '应用中...') : `🚀 ${t('Apply & Restart Gost', '保存并重启代理')}`}
+              {applying ? t('Applying...', '应用中...') : t('Save & Restart', '保存并重启代理')}
             </button>
           </div>
 
@@ -181,11 +186,11 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
                     <div className="setting-item">
                       <div className="setting-main">
                         <div className="ios-badge badge-teal">
-                          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                          <SFSymbol name="network" size={16} />
                         </div>
                         <input
                           className="ios-input"
-                          style={{ fontFamily: 'var(--sys-mono)', border: 'none', background: 'transparent', padding: '4px 8px', fontSize: '15px' }}
+                          style={{ fontFamily: 'var(--sys-mono)', border: 'none', background: 'transparent', padding: '4px 8px', fontSize: '14.5px' }}
                           value={node.url}
                           onChange={e => updateNode(i, 'url', e.target.value)}
                           placeholder="ip:port"
@@ -195,27 +200,19 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
                       <div className="setting-accessory">
                         <button
                           type="button"
-                          className="icon-btn"
-                          title={t('Configure parameters', '高级参数')}
-                          style={{ background: 'none', border: 'none', color: expandedIdx === i ? 'var(--blue)' : 'var(--text-secondary)', cursor: 'pointer', padding: '6px' }}
+                          className="ios-btn secondary"
+                          style={{ padding: '4px 10px', fontSize: '12px' }}
                           onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
                         >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                          </svg>
+                          {expandedIdx === i ? t('Close', '收起') : t('Config', '参数')}
                         </button>
                         <button
                           type="button"
-                          className="icon-btn"
-                          title={t('Delete node', '删除节点')}
-                          style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', padding: '6px' }}
+                          className="ios-btn danger"
+                          style={{ padding: '4px 10px', fontSize: '12px' }}
                           onClick={() => removeNode(i)}
                         >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          </svg>
+                          {t('Delete', '删除')}
                         </button>
                       </div>
                     </div>
@@ -224,10 +221,10 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
                     <div className={`node-drawer ${expandedIdx === i ? 'open' : ''}`}>
                       <div className="node-drawer-content">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Auth:', '认证:')}</span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{t('Auth:', '认证:')}</span>
                           <input
                             className="ios-input"
-                            style={{ width: '130px', padding: '5px 8px', fontSize: '13px' }}
+                            style={{ width: '130px', padding: '5px 8px', fontSize: '12.5px' }}
                             value={node.auth || ''}
                             onChange={e => updateNode(i, 'auth', e.target.value)}
                             placeholder="user:pass"
@@ -235,20 +232,20 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Max Fails:', '重试阈值:')}</span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{t('Max Fails:', '重试阈值:')}</span>
                           <input
                             className="ios-input"
-                            style={{ width: '60px', padding: '5px 8px', fontSize: '13px', textAlign: 'center' }}
+                            style={{ width: '60px', padding: '5px 8px', fontSize: '12.5px', textAlign: 'center' }}
                             value={node.maxFails}
                             onChange={e => updateNode(i, 'maxFails', e.target.value)}
                           />
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Timeout:', '超时:')}</span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{t('Timeout:', '超时:')}</span>
                           <input
                             className="ios-input"
-                            style={{ width: '70px', padding: '5px 8px', fontSize: '13px', textAlign: 'center' }}
+                            style={{ width: '70px', padding: '5px 8px', fontSize: '12.5px', textAlign: 'center' }}
                             value={node.failTimeout}
                             onChange={e => updateNode(i, 'failTimeout', e.target.value)}
                             placeholder="30s"
@@ -256,7 +253,7 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
-                          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t('Bypass Rules:', '绕过规则:')}</span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{t('Bypass Rules:', '绕过规则:')}</span>
                           <label className="ios-switch">
                             <input
                               type="checkbox"
@@ -279,24 +276,30 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
       {/* Bypass Tab */}
       {activeSubTab === 'bypass' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button
-                className="ios-btn secondary small"
+                type="button"
+                className="ios-btn secondary"
                 onClick={() => insertBypassPreset('.bilibili.com\n.weibo.com\n.zhihu.com')}
               >
-                + {t('Bilibili/Weibo Preset', '常用社媒预设')}
+                + {t('Social Media Preset', '常用社媒预设')}
               </button>
               <button
-                className="ios-btn secondary small"
+                type="button"
+                className="ios-btn secondary"
                 onClick={() => insertBypassPreset('.qq.com\n.baidu.com\n.aliyun.com\n.163.com')}
               >
-                + {t('Domestic Cloud Preset', '国内主流云与网关预设')}
+                + {t('Cloud & Gateway Preset', '国内主流云预设')}
               </button>
             </div>
 
-            <button className="ios-btn primary small" onClick={handleSaveBypass}>
-              💾 {t('Save bypass.txt', '保存规则')}
+            <button
+              type="button"
+              className="ios-btn primary"
+              onClick={handleSaveBypass}
+            >
+              {t('Save Rules', '保存分流规则')}
             </button>
           </div>
 

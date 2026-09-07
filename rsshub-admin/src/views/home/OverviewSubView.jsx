@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SFSymbol from '../../components/SFSymbols.jsx';
 
 export function OverviewSubView({ t, showToast }) {
   const [statusData, setStatusData] = useState(null);
@@ -114,7 +115,7 @@ export function OverviewSubView({ t, showToast }) {
           <div className="setting-item">
             <div className="setting-main">
               <div className="ios-badge badge-blue">
-                <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                <SFSymbol name="arrow.clockwise" size={16} />
               </div>
               <div className="setting-info">
                 <span className="setting-title">{t('Restart RSSHub Core', '重启 RSSHub 核心')}</span>
@@ -123,7 +124,8 @@ export function OverviewSubView({ t, showToast }) {
             </div>
             <div className="setting-accessory">
               <button
-                className="ios-btn secondary small"
+                type="button"
+                className="ios-btn secondary"
                 disabled={actionLoading === 'rsshub'}
                 onClick={handleRestartRsshub}
               >
@@ -135,7 +137,7 @@ export function OverviewSubView({ t, showToast }) {
           <div className="setting-item">
             <div className="setting-main">
               <div className="ios-badge badge-teal">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <SFSymbol name="network" size={16} />
               </div>
               <div className="setting-info">
                 <span className="setting-title">{t('Restart Gost Proxy', '重启 Gost 代理池')}</span>
@@ -144,7 +146,8 @@ export function OverviewSubView({ t, showToast }) {
             </div>
             <div className="setting-accessory">
               <button
-                className="ios-btn secondary small"
+                type="button"
+                className="ios-btn secondary"
                 disabled={actionLoading === 'gost'}
                 onClick={handleRestartGost}
               >
@@ -156,7 +159,7 @@ export function OverviewSubView({ t, showToast }) {
           <div className="setting-item">
             <div className="setting-main">
               <div className="ios-badge badge-orange">
-                <svg viewBox="0 0 24 24"><path d="M21.58 16.09l-1.09-7.66C20.21 6.46 18.52 5 16.53 5H7.47C5.48 5 3.79 6.46 3.51 8.43l-1.09 7.66C2.2 17.63 3.39 19 4.94 19h14.12c1.55 0 2.74-1.37 2.52-2.91zM12 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>
+                <SFSymbol name="cylinder.split.1x2.fill" size={16} />
               </div>
               <div className="setting-info">
                 <span className="setting-title">{t('Force Sync CookieCloud', '强制同步 CookieCloud')}</span>
@@ -165,7 +168,8 @@ export function OverviewSubView({ t, showToast }) {
             </div>
             <div className="setting-accessory">
               <button
-                className="ios-btn primary small"
+                type="button"
+                className="ios-btn primary"
                 disabled={actionLoading === 'cookie'}
                 onClick={handleSyncCookies}
               >
@@ -185,7 +189,7 @@ export function OverviewSubView({ t, showToast }) {
               <div key={i} className="setting-item">
                 <div className="setting-main">
                   <div className={`ios-badge ${c.state === 'running' ? 'badge-green' : 'badge-red'}`}>
-                    <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/></svg>
+                    <SFSymbol name="server.rack" size={16} />
                   </div>
                   <div className="setting-info">
                     <span className="setting-title">{c.label}</span>
@@ -194,7 +198,15 @@ export function OverviewSubView({ t, showToast }) {
                 </div>
                 <div className="setting-accessory">
                   <span className={`container-badge ${c.state === 'running' ? 'badge-running' : 'badge-stopped'}`}>
-                    <span className="status-pulse" style={{ backgroundColor: c.state === 'running' ? 'var(--green)' : 'var(--red)', boxShadow: 'none' }}></span>
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        backgroundColor: c.state === 'running' ? 'var(--green)' : 'var(--red)',
+                        display: 'inline-block'
+                      }}
+                    ></span>
                     {c.state === 'running' ? t('Running', '运行中') : t('Inactive', '未运行')}
                   </span>
                 </div>
