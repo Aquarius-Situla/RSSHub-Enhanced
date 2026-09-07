@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import SegmentedControl from '../components/SegmentedControl.jsx';
 import SFSymbol from '../components/SFSymbols.jsx';
 
-export function DataView({ t, showToast, initialSubTab, isMobile }) {
-  const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'sync');
+export function DataView({ t, showToast, subTab, onSelectSubTab }) {
   const [config, setConfig] = useState({
     server: '',
     uuid: '',
@@ -15,10 +13,6 @@ export function DataView({ t, showToast, initialSubTab, isMobile }) {
   const [syncing, setSyncing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (initialSubTab) setActiveSubTab(initialSubTab);
-  }, [initialSubTab]);
 
   useEffect(() => {
     fetch('api/cookiecloud')
@@ -91,21 +85,9 @@ export function DataView({ t, showToast, initialSubTab, isMobile }) {
     }
   };
 
-  const segmentedOptions = [
-    { key: 'sync', label: isMobile ? t('Sync', '同步') : t('CookieCloud Sync', 'Cookie 同步') },
-    { key: 'keys', label: isMobile ? t('Keys', '密钥') : t('Platform Keys', '平台凭据') }
-  ];
-
-  return (
-    <div className="fade-in">
-      <SegmentedControl
-        options={segmentedOptions}
-        activeKey={activeSubTab}
-        onChange={setActiveSubTab}
-      />
-
-      {/* Sync SubView */}
-      {activeSubTab === 'sync' && (
+  if (subTab === 'sync') {
+    return (
+      <div className="fade-in">
         <div>
           <div className="settings-section">
             <div className="settings-section-header">{t('CookieCloud Server Credentials', 'CookieCloud 账号与服务连接')}</div>
@@ -230,72 +212,110 @@ export function DataView({ t, showToast, initialSubTab, isMobile }) {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Keys SubView */}
-      {activeSubTab === 'keys' && (
-        <div>
-          <div className="settings-section">
-            <div className="settings-section-header">{t('Decoupled Platform API Keys', '独立第三方平台凭据')}</div>
-            <div className="settings-card">
-              <div className="setting-item">
-                <div className="setting-main">
-                  <div className="ios-badge badge-blue">
-                    <SFSymbol name="safari.fill" size={16} />
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{t('Bilibili VIP UID (BILIBILIUID)', 'B站大会员 UID')}</span>
-                    <span className="setting-desc">{t('Used for 1080P+ high-resolution video streams', '用于 Bilibili 订阅获取 1080P 高清画质')}</span>
-                  </div>
+  if (subTab === 'keys') {
+    return (
+      <div className="fade-in">
+        <div className="settings-section">
+          <div className="settings-section-header">{t('Decoupled Platform API Keys', '独立第三方平台凭据')}</div>
+          <div className="settings-card">
+            <div className="setting-item">
+              <div className="setting-main">
+                <div className="ios-badge badge-blue">
+                  <SFSymbol name="safari.fill" size={16} />
                 </div>
-                <div className="setting-accessory" style={{ width: '220px' }}>
-                  <input
-                    type="text"
-                    className="ios-input"
-                    style={{ fontFamily: 'var(--sys-mono)' }}
-                    value={config.bilibiliUid || ''}
-                    onChange={e => setConfig({ ...config, bilibiliUid: e.target.value })}
-                    placeholder="e.g. 2267573"
-                  />
+                <div className="setting-info">
+                  <span className="setting-title">{t('Bilibili VIP UID (BILIBILIUID)', 'B站大会员 UID')}</span>
+                  <span className="setting-desc">{t('Used for 1080P+ high-resolution video streams', '用于 Bilibili 订阅获取 1080P 高清画质')}</span>
                 </div>
               </div>
-
-              <div className="setting-item">
-                <div className="setting-main">
-                  <div className="ios-badge badge-red">
-                    <SFSymbol name="key.fill" size={16} />
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{t('YouTube Data API Key (YOUTUBE_KEY)', 'YouTube Data API 密钥')}</span>
-                    <span className="setting-desc">{t('Official Google Cloud Console Data API v3 key', '用于 YouTube 频道与视频列表稳定订阅')}</span>
-                  </div>
-                </div>
-                <div className="setting-accessory" style={{ width: '220px' }}>
-                  <input
-                    type="text"
-                    className="ios-input"
-                    style={{ fontFamily: 'var(--sys-mono)', fontSize: '12.5px' }}
-                    value={config.youtubeKey || ''}
-                    onChange={e => setConfig({ ...config, youtubeKey: e.target.value })}
-                    placeholder="AIzaSy..."
-                  />
-                </div>
+              <div className="setting-accessory" style={{ width: '220px' }}>
+                <input
+                  type="text"
+                  className="ios-input"
+                  style={{ fontFamily: 'var(--sys-mono)' }}
+                  value={config.bilibiliUid || ''}
+                  onChange={e => setConfig({ ...config, bilibiliUid: e.target.value })}
+                  placeholder="e.g. 2267573"
+                />
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-              <button
-                type="button"
-                className="ios-btn primary"
-                onClick={handleSaveKeys}
-                disabled={saving}
-              >
-                {saving ? t('Saving...', '保存中...') : t('Save API Keys', '保存平台凭据')}
-              </button>
+            <div className="setting-item">
+              <div className="setting-main">
+                <div className="ios-badge badge-red">
+                  <SFSymbol name="key.fill" size={16} />
+                </div>
+                <div className="setting-info">
+                  <span className="setting-title">{t('YouTube Data API Key (YOUTUBE_KEY)', 'YouTube Data API 密钥')}</span>
+                  <span className="setting-desc">{t('Official Google Cloud Console Data API v3 key', '用于 YouTube 频道与视频列表稳定订阅')}</span>
+                </div>
+              </div>
+              <div className="setting-accessory" style={{ width: '220px' }}>
+                <input
+                  type="text"
+                  className="ios-input"
+                  style={{ fontFamily: 'var(--sys-mono)', fontSize: '12.5px' }}
+                  value={config.youtubeKey || ''}
+                  onChange={e => setConfig({ ...config, youtubeKey: e.target.value })}
+                  placeholder="AIzaSy..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+            <button
+              type="button"
+              className="ios-btn primary"
+              onClick={handleSaveKeys}
+              disabled={saving}
+            >
+              {saving ? t('Saving...', '保存中...') : t('Save API Keys', '保存平台凭据')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fade-in">
+      <div className="ios-group-container">
+        <div className="ios-section-header">
+          {t('Data & Credentials Sync', '数据与凭据同步 (DATA & CREDENTIALS)')}
+        </div>
+        <div className="ios-card">
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('sync')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-orange">
+                <SFSymbol name="cylinder.split.1x2.fill" size={17} />
+              </div>
+              <span>CookieCloud</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">{t('Auto Decrypt & Inject', '自动解密注入')}</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          </div>
+
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('keys')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-purple">
+                <SFSymbol name="key.fill" size={17} />
+              </div>
+              <span>{t('Platform API Keys', '平台 API 凭据')}</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">{t('Multi-Platform Tokens', '多平台授权')}</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

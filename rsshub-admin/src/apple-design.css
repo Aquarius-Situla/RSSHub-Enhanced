@@ -221,6 +221,166 @@ body.device-mobile {
 }
 
 /* ============================================================================
+ * Section 1.5: Apple Native Top Navigation Bar & Desktop Back Button
+ * ============================================================================ */
+.apple-top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: calc(44px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 20, 22, 0.88);
+  backdrop-filter: blur(25px) saturate(190%);
+  -webkit-backdrop-filter: blur(25px) saturate(190%);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
+  z-index: 25000 !important;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (min-width: 769px) {
+  html:not(.device-mobile) .apple-top-nav {
+    display: none !important;
+  }
+}
+
+.apple-top-nav .nav-title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "PingFang SC", sans-serif;
+  margin: 0;
+  padding: 0 76px;
+  height: 44px;
+  line-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  max-width: calc(100% - 152px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apple-top-nav .nav-back-link {
+  position: absolute;
+  left: 0;
+  top: env(safe-area-inset-top, 0px);
+  bottom: 0;
+  height: 44px;
+  padding-left: calc(12px + env(safe-area-inset-left, 0px));
+  padding-right: 18px;
+  display: flex !important;
+  align-items: center;
+  gap: 3px;
+  color: #0a84ff !important;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "PingFang SC", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  z-index: 25005 !important;
+  touch-action: manipulation;
+  pointer-events: auto !important;
+  background: transparent;
+  border: none;
+}
+
+.apple-top-nav .nav-back-link svg {
+  width: 20px;
+  height: 20px;
+  stroke: #0a84ff !important;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.apple-top-nav .nav-back-link:active {
+  opacity: 0.35;
+  transition: opacity 0.08s ease;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .apple-top-nav {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+  }
+  :root:not([data-theme="dark"]) .apple-top-nav .nav-title {
+    color: #000000;
+  }
+}
+
+:root[data-theme="light"] .apple-top-nav {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .apple-top-nav .nav-title {
+  color: #000000;
+}
+
+/* Desktop Back Button (.top-back-btn) */
+.top-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px 0 4px;
+  margin-bottom: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--apple-music-red);
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.top-back-btn:hover {
+  background: var(--hover-bg);
+}
+
+.top-back-btn:active {
+  transform: scale(0.97);
+}
+
+.top-back-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 768px) {
+  .top-back-btn {
+    display: none !important;
+  }
+}
+
+html.device-mobile .top-back-btn {
+  display: none !important;
+}
+
+/* ============================================================================
  * Section 2: Desktop Layout & Authentic Apple Sidebar (Screens > 768px on PC/Mac)
  * ============================================================================ */
 @media (min-width: 769px) {

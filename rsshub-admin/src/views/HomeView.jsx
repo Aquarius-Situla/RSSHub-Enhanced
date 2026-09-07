@@ -1,42 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import SegmentedControl from '../components/SegmentedControl.jsx';
+import React from 'react';
+import SFSymbol from '../components/SFSymbols.jsx';
 import OverviewSubView from './home/OverviewSubView.jsx';
 import RouteNavSubView from './home/RouteNavSubView.jsx';
 import RouteErrorsSubView from './home/RouteErrorsSubView.jsx';
 
-export function HomeView({ t, showToast, initialSubTab, isMobile }) {
-  const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'overview');
-
-  useEffect(() => {
-    if (initialSubTab) {
-      setActiveSubTab(initialSubTab);
-    }
-  }, [initialSubTab]);
-
-  const segmentedOptions = [
-    { key: 'overview', label: isMobile ? t('Overview', '概览') : t('System Overview', '运行概览') },
-    { key: 'routes', label: isMobile ? t('Navigator', '导航') : t('Route Navigator', '路由导航') },
-    { key: 'errors', label: isMobile ? t('Errors', '异常') : t('Error Routes', '异常路由') }
-  ];
+export function HomeView({ t, showToast, subTab, onSelectSubTab }) {
+  if (subTab === 'overview') {
+    return <OverviewSubView t={t} showToast={showToast} />;
+  }
+  if (subTab === 'routes') {
+    return <RouteNavSubView t={t} showToast={showToast} />;
+  }
+  if (subTab === 'errors') {
+    return <RouteErrorsSubView t={t} showToast={showToast} />;
+  }
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">{t('RSSHub Home Portal', 'RSSHub 主页综合门户')}</h1>
-        <p className="page-subtitle">{t('Unified dashboard for instance health, route directory, and live diagnostics', '集微服务健康看板、官方路由检索与故障诊断于一体的综合门户')}</p>
+    <div className="fade-in">
+      <div className="ios-group-container">
+        <div className="ios-section-header">
+          {t('Dashboard & Diagnostic Hub', '服务监控与导航 (MONITORING & NAVIGATION)')}
+        </div>
+        <div className="ios-card">
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('overview')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-blue">
+                <SFSymbol name="square.grid.2x2.fill" size={17} />
+              </div>
+              <span>{t('System Overview', '运行概览')}</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">{t('100% Health', '微服务健康 100%')}</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          </div>
+
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('routes')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-purple">
+                <SFSymbol name="safari.fill" size={17} />
+              </div>
+              <span>{t('Route Navigator', '路由导航')}</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">{t('Directory & Test', '路由检索与测试')}</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          </div>
+
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('errors')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-red">
+                <SFSymbol name="exclamationmark.triangle.fill" size={17} />
+              </div>
+              <span>{t('Error Routes', '故障监控')}</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">{t('Live Diagnostics', '异常诊断')}</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Segmented Control Switcher */}
-      <SegmentedControl
-        options={segmentedOptions}
-        activeKey={activeSubTab}
-        onChange={setActiveSubTab}
-      />
-
-      {/* Sub-view Content */}
-      {activeSubTab === 'overview' && <OverviewSubView t={t} showToast={showToast} />}
-      {activeSubTab === 'routes' && <RouteNavSubView t={t} showToast={showToast} />}
-      {activeSubTab === 'errors' && <RouteErrorsSubView t={t} showToast={showToast} />}
     </div>
   );
 }

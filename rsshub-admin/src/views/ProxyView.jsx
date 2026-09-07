@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import SegmentedControl from '../components/SegmentedControl.jsx';
 import SFSymbol from '../components/SFSymbols.jsx';
 
-export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
-  const [activeSubTab, setActiveSubTab] = useState(initialSubTab || 'nodes');
+export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
   const [nodes, setNodes] = useState([]);
   const [bypassText, setBypassText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -12,20 +10,11 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (initialSubTab) setActiveSubTab(initialSubTab);
-  }, [initialSubTab]);
-
-  useEffect(() => {
     Promise.all([
       fetch('api/nodes').then(r => r.json()).then(d => setNodes(d.nodes || [])),
       fetch('api/bypass').then(r => r.json()).then(d => setBypassText(d.content || ''))
     ]).finally(() => setLoading(false));
   }, []);
-
-  const segmentedOptions = [
-    { key: 'nodes', label: isMobile ? t('Nodes', '节点') : t('Proxy Nodes', '代理节点') },
-    { key: 'bypass', label: isMobile ? t('Bypass', '分流') : t('Bypass Rules', '分流规则') }
-  ];
 
   // Node actions
   const updateNode = (idx, key, val) => {
@@ -121,18 +110,10 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
     showToast(t('Preset rules added to editor', '预设规则已追加到编辑器'));
   };
 
-  return (
-    <div className="fade-in">
-      <SegmentedControl
-        options={segmentedOptions}
-        activeKey={activeSubTab}
-        onChange={setActiveSubTab}
-      />
-
-      {/* Nodes Tab */}
-      {activeSubTab === 'nodes' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+  if (subTab === 'nodes') {
+    return (
+      <div className="fade-in">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="file"
@@ -271,57 +252,95 @@ export function ProxyView({ t, showToast, initialSubTab, isMobile }) {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Bypass Tab */}
-      {activeSubTab === 'bypass' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="ios-btn secondary"
-                onClick={() => insertBypassPreset('.bilibili.com\n.weibo.com\n.zhihu.com')}
-              >
-                + {t('Social Media Preset', '常用社媒预设')}
-              </button>
-              <button
-                type="button"
-                className="ios-btn secondary"
-                onClick={() => insertBypassPreset('.qq.com\n.baidu.com\n.aliyun.com\n.163.com')}
-              >
-                + {t('Cloud & Gateway Preset', '国内主流云预设')}
-              </button>
-            </div>
-
+  if (subTab === 'bypass') {
+    return (
+      <div className="fade-in">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
               type="button"
-              className="ios-btn primary"
-              onClick={handleSaveBypass}
+              className="ios-btn secondary"
+              onClick={() => insertBypassPreset('.bilibili.com\n.weibo.com\n.zhihu.com')}
             >
-              {t('Save Rules', '保存分流规则')}
+              + {t('Social Media Preset', '常用社媒预设')}
+            </button>
+            <button
+              type="button"
+              className="ios-btn secondary"
+              onClick={() => insertBypassPreset('.qq.com\n.baidu.com\n.aliyun.com\n.163.com')}
+            >
+              + {t('Cloud & Gateway Preset', '国内主流云预设')}
             </button>
           </div>
 
-          <div className="settings-section">
-            <div className="settings-section-header">
-              bypass.txt ({bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} {t('Active Rules', '条有效规则')})
-            </div>
-            <div className="settings-card" style={{ padding: '16px' }}>
-              <textarea
-                className="ios-textarea"
-                rows={12}
-                value={bypassText}
-                onChange={e => setBypassText(e.target.value)}
-                placeholder={t('# Enter IP CIDR or domain rules (one per line)...\n# E.g.:\n127.0.0.1\n.bilibili.com\n.weibo.com', '# 每行输入一个直连域名或 IP 段规则...\n# 例如:\n127.0.0.1\n.bilibili.com\n.weibo.com')}
-              />
-              <div style={{ marginTop: '10px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                💡 {t('Any request matching rules in bypass.txt will connect directly without routing through Gost proxy nodes.', '包含在 bypass.txt 中的域名或 IP 将不经由代理节点，直接发起请求。')}
-              </div>
+          <button
+            type="button"
+            className="ios-btn primary"
+            onClick={handleSaveBypass}
+          >
+            {t('Save Rules', '保存分流规则')}
+          </button>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-header">
+            bypass.txt ({bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} {t('Active Rules', '条有效规则')})
+          </div>
+          <div className="settings-card" style={{ padding: '16px' }}>
+            <textarea
+              className="ios-textarea"
+              rows={12}
+              value={bypassText}
+              onChange={e => setBypassText(e.target.value)}
+              placeholder={t('# Enter IP CIDR or domain rules (one per line)...\n# E.g.:\n127.0.0.1\n.bilibili.com\n.weibo.com', '# 每行输入一个直连域名或 IP 段规则...\n# 例如:\n127.0.0.1\n.bilibili.com\n.weibo.com')}
+            />
+            <div style={{ marginTop: '10px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+              💡 {t('Any request matching rules in bypass.txt will connect directly without routing through Gost proxy nodes.', '包含在 bypass.txt 中的域名或 IP 将不经由代理节点，直接发起请求。')}
             </div>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fade-in">
+      <div className="ios-group-container">
+        <div className="ios-section-header">
+          {t('Network & Proxy Routing', '网络与分流 (NETWORK & PROXY)')}
+        </div>
+        <div className="ios-card">
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('nodes')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-teal">
+                <SFSymbol name="network" size={17} />
+              </div>
+              <span>{t('Proxy Nodes Pool', '代理节点池')}</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">{nodes.length} {t('Nodes', '个节点')}</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          </div>
+
+          <div className="ios-row has-badge" onClick={() => onSelectSubTab('bypass')}>
+            <div className="ios-row-title">
+              <div className="ios-badge badge-indigo">
+                <SFSymbol name="shield.fill" size={17} />
+              </div>
+              <span>{t('Bypass Rules', '直连分流规则')}</span>
+            </div>
+            <div className="ios-row-accessory">
+              <span className="ios-row-value">bypass.txt</span>
+              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

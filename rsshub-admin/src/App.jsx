@@ -9,12 +9,9 @@ import SFSymbol from './components/SFSymbols.jsx';
 import { initDeviceLayout, isMobileLayout, syncStandaloneTabBar } from './utils/device-detect.js';
 
 export function App() {
-  // Navigation State
+  // Navigation State: 4 core tabs and drill-down subTab
   const [activeTab, setActiveTab] = useState('home');
-  const [homeSubTab, setHomeSubTab] = useState('overview');
-  const [proxySubTab, setProxySubTab] = useState('nodes');
-  const [dataSubTab, setDataSubTab] = useState('sync');
-  const [settingsSubTab, setSettingsSubTab] = useState('security');
+  const [subTab, setSubTab] = useState(null);
 
   // Sidebar search filter
   const [navSearch, setNavSearch] = useState('');
@@ -29,14 +26,8 @@ export function App() {
   const indicatorRef = useRef(null);
   const prevIndicatorTopRef = useRef(null);
 
-  // Active key identifier for desktop sidebar
-  const currentNavKey = (() => {
-    if (activeTab === 'home') return `home-${homeSubTab}`;
-    if (activeTab === 'proxy') return `proxy-${proxySubTab}`;
-    if (activeTab === 'data') return `data-${dataSubTab}`;
-    if (activeTab === 'settings') return `settings-${settingsSubTab}`;
-    return 'home-overview';
-  })();
+  // Active key identifier for desktop sidebar (strictly 4 tabs)
+  const currentNavKey = activeTab;
 
   const moveRedIndicator = (toY, animate = true) => {
     const indicator = indicatorRef.current;
@@ -204,13 +195,38 @@ export function App() {
     }, 2800);
   };
 
-  // Desktop Navigation Select Handler
-  const handleSelectDesktopNav = (tab, subTab) => {
+  // Navigation Handlers & Title Resolvers
+  const handleSelectTab = (tab) => {
     setActiveTab(tab);
-    if (tab === 'home' && subTab) setHomeSubTab(subTab);
-    if (tab === 'proxy' && subTab) setProxySubTab(subTab);
-    if (tab === 'data' && subTab) setDataSubTab(subTab);
-    if (tab === 'settings' && subTab) setSettingsSubTab(subTab);
+    setSubTab(null);
+  };
+
+  const getTabTitle = (tab) => {
+    switch (tab) {
+      case 'home': return t('Home', '主页');
+      case 'proxy': return t('Proxy', '代理');
+      case 'data': return t('Data', '数据');
+      case 'settings': return t('Settings', '设置');
+      default: return t('Home', '主页');
+    }
+  };
+
+  const getSubTabTitle = (sub) => {
+    switch (sub) {
+      case 'overview': return t('System Overview', '运行概览');
+      case 'routes': return t('Route Navigator', '路由导航');
+      case 'errors': return t('Error Diagnostics', '故障监控');
+      case 'nodes': return t('Proxy Nodes', '代理节点池');
+      case 'bypass': return t('Bypass Rules', '直连分流规则');
+      case 'sync': return 'CookieCloud';
+      case 'keys': return t('Platform API Keys', '平台 API 凭据');
+      case 'lang': return t('Language & Region', '全局语言');
+      case 'theme': return t('Appearance & Theme', '外观与主题');
+      case 'accessKey': return t('Access Control Key', '访问控制密钥');
+      case 'sso': return t('SSO & Reverse Proxy', '反代与单点登录');
+      case 'system': return t('System Info', '系统信息');
+      default: return '';
+    }
   };
 
   // Apple Music style compact bottom profile feedback
@@ -241,11 +257,19 @@ export function App() {
        * Mobile Top Navigation Bar (Authentic Frosted Glass Header)
        * ==================================================================== */}
       <header className="apple-top-nav">
-        <h1 className="apple-top-nav-title">
-          {activeTab === 'home' && t('Home Portal', '主页')}
-          {activeTab === 'proxy' && t('Proxy Network', '代理')}
-          {activeTab === 'data' && t('Data Sync', '数据')}
-          {activeTab === 'settings' && t('Settings', '设置')}
+        {subTab !== null && (
+          <button
+            type="button"
+            className="nav-back-link"
+            onClick={() => setSubTab(null)}
+            aria-label={t('Back', '返回')}
+          >
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span>{getTabTitle(activeTab)}</span>
+          </button>
+        )}
+        <h1 className="nav-title">
+          {subTab !== null ? getSubTabTitle(subTab) : getTabTitle(activeTab)}
         </h1>
       </header>
 
@@ -292,139 +316,59 @@ export function App() {
             </div>
           </div>
 
-          {/* Section 1: Home Portal */}
-          <div className="desktop-nav-group">
-            <div className="desktop-nav-header">{t('Portal Hub', '主页中心')}</div>
-            {matchesSearch(t('System Overview', '运行概览')) && (
+          {/* Main Navigation: Strictly 4 Core Tabs (sys-memorial spec) */}
+          <div className="desktop-nav-group" style={{ marginTop: '6px' }}>
+            <div className="desktop-nav-header">{t('Menu', '核心导航')}</div>
+            {matchesSearch(t('Home', '主页')) && (
               <button
                 type="button"
-                data-nav-key="home-overview"
-                className={`desktop-nav-item ${currentNavKey === 'home-overview' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('home', 'overview')}
+                data-nav-key="home"
+                className={`desktop-nav-item ${activeTab === 'home' ? 'active' : ''}`}
+                onClick={() => handleSelectTab('home')}
               >
                 <span className="desktop-nav-icon">
-                  <SFSymbol name="square.grid.2x2.fill" size={17} />
+                  <SFSymbol name="house.fill" size={17} />
                 </span>
-                <span className="desktop-nav-label">{t('System Overview', '运行概览')}</span>
+                <span className="desktop-nav-label">{t('Home', '主页')}</span>
               </button>
             )}
-            {matchesSearch(t('Route Navigator', '路由导航')) && (
+            {matchesSearch(t('Proxy', '代理')) && (
               <button
                 type="button"
-                data-nav-key="home-routes"
-                className={`desktop-nav-item ${currentNavKey === 'home-routes' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('home', 'routes')}
-              >
-                <span className="desktop-nav-icon">
-                  <SFSymbol name="safari.fill" size={17} />
-                </span>
-                <span className="desktop-nav-label">{t('Route Navigator', '路由导航')}</span>
-              </button>
-            )}
-            {matchesSearch(t('Error Routes', '异常路由')) && (
-              <button
-                type="button"
-                data-nav-key="home-errors"
-                className={`desktop-nav-item ${currentNavKey === 'home-errors' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('home', 'errors')}
-              >
-                <span className="desktop-nav-icon">
-                  <SFSymbol name="exclamationmark.triangle.fill" size={17} />
-                </span>
-                <span className="desktop-nav-label">{t('Error Routes', '异常路由')}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Section 2: Network & Proxy */}
-          <div className="desktop-nav-group">
-            <div className="desktop-nav-header">{t('Network & Proxy', '网络代理')}</div>
-            {matchesSearch(t('Proxy Nodes', '代理节点')) && (
-              <button
-                type="button"
-                data-nav-key="proxy-nodes"
-                className={`desktop-nav-item ${currentNavKey === 'proxy-nodes' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('proxy', 'nodes')}
+                data-nav-key="proxy"
+                className={`desktop-nav-item ${activeTab === 'proxy' ? 'active' : ''}`}
+                onClick={() => handleSelectTab('proxy')}
               >
                 <span className="desktop-nav-icon">
                   <SFSymbol name="network" size={17} />
                 </span>
-                <span className="desktop-nav-label">{t('Proxy Nodes', '代理节点')}</span>
+                <span className="desktop-nav-label">{t('Proxy', '代理')}</span>
               </button>
             )}
-            {matchesSearch(t('Bypass Rules', '分流规则')) && (
+            {matchesSearch(t('Data', '数据')) && (
               <button
                 type="button"
-                data-nav-key="proxy-bypass"
-                className={`desktop-nav-item ${currentNavKey === 'proxy-bypass' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('proxy', 'bypass')}
-              >
-                <span className="desktop-nav-icon">
-                  <SFSymbol name="shield.fill" size={17} />
-                </span>
-                <span className="desktop-nav-label">{t('Bypass Rules', '分流规则')}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Section 3: Data & Sync */}
-          <div className="desktop-nav-group">
-            <div className="desktop-nav-header">{t('Data & Credentials', '数据同步')}</div>
-            {matchesSearch('CookieCloud') && (
-              <button
-                type="button"
-                data-nav-key="data-sync"
-                className={`desktop-nav-item ${currentNavKey === 'data-sync' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('data', 'sync')}
+                data-nav-key="data"
+                className={`desktop-nav-item ${activeTab === 'data' ? 'active' : ''}`}
+                onClick={() => handleSelectTab('data')}
               >
                 <span className="desktop-nav-icon">
                   <SFSymbol name="cylinder.split.1x2.fill" size={17} />
                 </span>
-                <span className="desktop-nav-label">CookieCloud</span>
+                <span className="desktop-nav-label">{t('Data', '数据')}</span>
               </button>
             )}
-            {matchesSearch(t('Platform API Keys', '平台凭据')) && (
+            {matchesSearch(t('Settings', '设置')) && (
               <button
                 type="button"
-                data-nav-key="data-keys"
-                className={`desktop-nav-item ${currentNavKey === 'data-keys' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('data', 'keys')}
+                data-nav-key="settings"
+                className={`desktop-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => handleSelectTab('settings')}
               >
                 <span className="desktop-nav-icon">
-                  <SFSymbol name="key.fill" size={17} />
+                  <SFSymbol name="gearshape.fill" size={17} />
                 </span>
-                <span className="desktop-nav-label">{t('Platform API Keys', '平台凭据')}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Section 4: System & Preferences */}
-          <div className="desktop-nav-group">
-            <div className="desktop-nav-header">{t('System & Security', '系统管理')}</div>
-            {matchesSearch(t('Access Control', '安全控制')) && (
-              <button
-                type="button"
-                data-nav-key="settings-security"
-                className={`desktop-nav-item ${currentNavKey === 'settings-security' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('settings', 'security')}
-              >
-                <span className="desktop-nav-icon">
-                  <SFSymbol name="lock.fill" size={17} />
-                </span>
-                <span className="desktop-nav-label">{t('Access Control', '安全控制')}</span>
-              </button>
-            )}
-            {matchesSearch(t('Preferences', '偏好设置')) && (
-              <button
-                type="button"
-                data-nav-key="settings-preferences"
-                className={`desktop-nav-item ${currentNavKey === 'settings-preferences' ? 'active' : ''}`}
-                onClick={() => handleSelectDesktopNav('settings', 'preferences')}
-              >
-                <span className="desktop-nav-icon">
-                  <SFSymbol name="slider.horizontal.3" size={17} />
-                </span>
-                <span className="desktop-nav-label">{t('Preferences', '偏好设置')}</span>
+                <span className="desktop-nav-label">{t('Settings', '设置')}</span>
               </button>
             )}
           </div>
@@ -456,11 +400,25 @@ export function App() {
        * ==================================================================== */}
       <main className="main-stage">
         <div className="stage-content-wrap">
+          {/* Desktop Back Button (Apple Native Top Navigation Link) */}
+          {subTab !== null && (
+            <button
+              type="button"
+              className="top-back-btn"
+              onClick={() => setSubTab(null)}
+              aria-label={t('Back', '返回')}
+            >
+              <svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <span>{t('Back to', '返回')} {getTabTitle(activeTab)}</span>
+            </button>
+          )}
+
           {activeTab === 'home' && (
             <HomeView
               t={t}
               showToast={showToast}
-              initialSubTab={homeSubTab}
+              subTab={subTab}
+              onSelectSubTab={setSubTab}
               isMobile={isMobile}
             />
           )}
@@ -468,7 +426,8 @@ export function App() {
             <ProxyView
               t={t}
               showToast={showToast}
-              initialSubTab={proxySubTab}
+              subTab={subTab}
+              onSelectSubTab={setSubTab}
               isMobile={isMobile}
             />
           )}
@@ -476,7 +435,8 @@ export function App() {
             <DataView
               t={t}
               showToast={showToast}
-              initialSubTab={dataSubTab}
+              subTab={subTab}
+              onSelectSubTab={setSubTab}
               isMobile={isMobile}
             />
           )}
@@ -484,7 +444,8 @@ export function App() {
             <SettingsView
               t={t}
               showToast={showToast}
-              initialSubTab={settingsSubTab}
+              subTab={subTab}
+              onSelectSubTab={setSubTab}
               isMobile={isMobile}
               currentLang={langConfig}
               onLanguageChange={handleLanguageChange}
@@ -502,7 +463,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'home' ? 'active' : ''}`}
-          onClick={() => setActiveTab('home')}
+          onClick={() => handleSelectTab('home')}
           aria-label={t('Home', '主页')}
         >
           <div className="apple-tab-icon">
@@ -514,7 +475,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'proxy' ? 'active' : ''}`}
-          onClick={() => setActiveTab('proxy')}
+          onClick={() => handleSelectTab('proxy')}
           aria-label={t('Proxy', '代理')}
         >
           <div className="apple-tab-icon">
@@ -526,7 +487,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'data' ? 'active' : ''}`}
-          onClick={() => setActiveTab('data')}
+          onClick={() => handleSelectTab('data')}
           aria-label={t('Data', '数据')}
         >
           <div className="apple-tab-icon">
@@ -538,7 +499,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
+          onClick={() => handleSelectTab('settings')}
           aria-label={t('Settings', '设置')}
         >
           <div className="apple-tab-icon">
