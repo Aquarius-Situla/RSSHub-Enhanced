@@ -252,7 +252,6 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
             </div>
           </div>
         </div>
-      </div>
     );
   }
 
