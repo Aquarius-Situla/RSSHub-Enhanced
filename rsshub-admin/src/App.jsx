@@ -173,12 +173,16 @@ export function App() {
 
   useEffect(() => {
     const root = document.documentElement;
+    /* Bridge AquaKit theme classes alongside data-theme attribute */
+    root.classList.remove('apple-theme-dark', 'apple-theme-light');
     if (themeConfig === 'auto') {
       root.removeAttribute('data-theme');
     } else {
       root.setAttribute('data-theme', themeConfig);
+      root.classList.add(`apple-theme-${themeConfig}`);
     }
   }, [themeConfig]);
+
 
   const handleThemeChange = (newTheme) => {
     setThemeConfig(newTheme);
