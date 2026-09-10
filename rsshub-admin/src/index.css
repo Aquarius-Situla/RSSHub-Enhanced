@@ -1,116 +1,13 @@
 @import './aquakit.css';
 @import './apple-design.css';
 
-/* Minimal root reset and transitions */
+/* Ensure html/body background fills the entire screen including safe-area bottom zone.
+ * This prevents the white chin strip from showing below the tab bar in PWA mode. */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100%;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Drawer / Collapsible for nodes */
-.node-drawer {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  background: var(--input-bg);
-}
-
-.node-drawer.open {
-  max-height: 240px;
-}
-
-.node-drawer-content {
-  padding: 12px 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  border-top: 0.5px solid var(--separator-subtle);
-}
-
-/* Category card grid for route navigation */
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
-}
-
-.category-card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  border: 0.5px solid var(--separator-subtle);
-  padding: 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  text-decoration: none;
-  color: var(--text-primary);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--card-shadow);
-}
-
-.category-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  border-color: var(--blue);
-}
-
-.category-card-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.category-card-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.category-card-desc {
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
-/* Container status table */
-.container-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-}
-
-.badge-running {
-  background: rgba(52, 199, 89, 0.15);
-  color: var(--green);
-}
-
-.badge-stopped {
-  background: rgba(255, 59, 48, 0.15);
-  color: var(--red);
-}
-
-.badge-unknown {
-  background: rgba(142, 142, 147, 0.15);
-  color: var(--gray);
+  min-height: -webkit-fill-available;
+  background-color: var(--apple-bg-stage);
 }

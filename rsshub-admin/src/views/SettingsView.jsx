@@ -403,62 +403,6 @@ export function SettingsView({
             </div>
           </div>
         </div>
-
-        {/* ==================================================================
-         * Section 3: System Information (sys-memorial spec)
-         * ================================================================== */}
-        <div id="sec-system">
-          <div className="ios-section-header">{t('System Info', '系统信息 (SYSTEM INFO)')}</div>
-          <div className="ios-card">
-            <div className="ios-row has-badge">
-              <div className="ios-row-title">
-                <div className="ios-badge badge-teal">
-                  <SFSymbol name="server.rack" size={17} />
-                </div>
-                <span>{t('Core Engine', '核心系统')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">RSSHub Enhanced</span>
-              </div>
-            </div>
-
-            <div className="ios-row has-badge">
-              <div className="ios-row-title">
-                <div className="ios-badge badge-dark">
-                  <SFSymbol name="info.circle.fill" size={17} />
-                </div>
-                <span>{t('Application Version', '应用版本')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">v1.0.0 (PWA)</span>
-              </div>
-            </div>
-
-            <div className="ios-row has-badge">
-              <div className="ios-row-title">
-                <div className="ios-badge badge-indigo">
-                  <SFSymbol name="sparkles" size={17} />
-                </div>
-                <span>{t('Design Standard', '设计系统规范')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">Apple HIG (iOS 18 / macOS)</span>
-              </div>
-            </div>
-
-            <div className="ios-row has-badge">
-              <div className="ios-row-title">
-                <div className="ios-badge badge-green">
-                  <SFSymbol name="shippingbox.fill" size={17} />
-                </div>
-                <span>{t('Deployment Stack', '容器化微服务环境')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value" style={{ color: 'var(--green)', fontWeight: 500 }}>Docker · Healthy</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
