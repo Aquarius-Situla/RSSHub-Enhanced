@@ -223,10 +223,13 @@ html {
     background-color: var(--apple-bg-stage, #111111);
     color: var(--apple-text-primary, #ffffff);
     font-family: var(--apple-font-family, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif);
+    overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-x: none;
 }
 
 body {
     min-height: 100vh;
+    min-height: -webkit-fill-available;
     min-height: calc(100lvh + 1px);
     background-color: var(--apple-bg-stage, #111111);
     color: var(--apple-text-primary, #ffffff);
@@ -235,6 +238,8 @@ body {
     letter-spacing: -0.022em;
     -webkit-tap-highlight-color: transparent;
     overflow-x: clip;
+    overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-x: none;
 }
 
 /* ============================================================================
@@ -673,6 +678,8 @@ html.device-mobile .apple-top-nav {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    transition: transform var(--apple-transition-push), opacity var(--apple-transition-push);
+    will-change: transform, opacity;
 }
 
 /* Back Link Button */
@@ -693,11 +700,16 @@ html.device-mobile .apple-top-nav {
     text-decoration: none;
     cursor: pointer;
     z-index: 10005;
-    transition: opacity var(--apple-transition-fast);
+    opacity: 0;
+    transform: translate3d(-10px, 0, 0);
+    transition: transform var(--apple-transition-push), opacity var(--apple-transition-push);
+    will-change: transform, opacity;
 }
 
 .apple-top-nav.has-back .apple-back-btn {
     display: flex;
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
 }
 
 .apple-top-nav .apple-back-btn svg {
@@ -764,19 +776,19 @@ body.is-subpage .apple-tab-bar {
 }
 
 /* ============================================================================
- * WebKit Standalone PWA Chin-Gap Robust Compensation
+ * WebKit Standalone PWA Bottom Tab Bar Anchoring
  * ============================================================================ */
 @media all and (display-mode: standalone) {
     .apple-tab-bar {
-        bottom: var(--tab-bar-standalone-bottom, calc(100% - 100vh));
+        bottom: 0;
     }
 }
 
 html.is-standalone .apple-tab-bar {
-    bottom: var(--tab-bar-standalone-bottom, calc(100% - 100vh));
+    bottom: 0;
 }
 
-/* Seamless Backdrop Extension (120px to absorb all rotation and viewport jitter) */
+/* Seamless Frosted-Glass Backdrop Extension (120px to absorb all bounce & rotation jitter) */
 .apple-tab-bar::after {
     content: "";
     position: absolute;
@@ -784,7 +796,9 @@ html.is-standalone .apple-tab-bar {
     left: 0;
     right: 0;
     height: 120px;
-    background: inherit;
+    background: var(--apple-bg-nav, rgba(20, 20, 22, 0.88));
+    backdrop-filter: var(--apple-backdrop-blur, blur(25px) saturate(190%));
+    -webkit-backdrop-filter: var(--apple-backdrop-blur, blur(25px) saturate(190%));
     pointer-events: none;
 }
 
@@ -961,6 +975,8 @@ html.device-phone.is-landscape #apple-orientation-guard {
     max-width: 680px;
     margin: 0 auto;
     box-sizing: border-box;
+    overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-x: none;
 }
 
 .apple-section-header {
@@ -1856,14 +1872,15 @@ html.apple-theme-dark .apple-health-bar {
 
 .apple-nav-view,
 .view-content {
-    transition: transform var(--apple-transition-push), opacity var(--apple-transition-push);
-    will-change: transform, opacity;
+    transition: transform var(--apple-transition-push), filter var(--apple-transition-push), opacity var(--apple-transition-push);
+    will-change: transform, opacity, filter;
 }
 
 .apple-nav-view.is-pushed,
 .view-content.is-pushed {
-    transform: translateX(-20%);
-    opacity: 0.35;
+    transform: translate3d(-28%, 0, 0);
+    filter: brightness(0.72);
+    opacity: 0.88;
     pointer-events: none;
 }
 
@@ -1875,24 +1892,27 @@ html.apple-theme-dark .apple-health-bar {
     width: 100%;
     min-height: 100%;
     background: var(--apple-bg-stage);
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
     opacity: 0;
     pointer-events: none;
     z-index: 50;
-    transition: transform var(--apple-transition-push), opacity var(--apple-transition-push);
+    box-shadow: -16px 0 36px rgba(0, 0, 0, 0.45);
+    transition: transform var(--apple-transition-push), opacity var(--apple-transition-push), box-shadow var(--apple-transition-push);
     box-sizing: border-box;
     will-change: transform, opacity;
+    overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-x: none;
 }
 
 .apple-subpage.active {
     display: block;
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
     pointer-events: auto;
 }
 
 .apple-subpage.is-exiting {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
     opacity: 0;
     transition: transform var(--apple-transition-pop), opacity var(--apple-transition-pop);
 }
