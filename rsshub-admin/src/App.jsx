@@ -242,7 +242,7 @@ export function App() {
   const getTabTitle = (tab) => {
     switch (tab) {
       case 'home': return t('Home', '主页');
-      case 'proxy': return t('Proxy', '代理');
+      case 'proxy': return 'VPN';
       case 'data': return t('Data', '数据');
       case 'settings': return t('Settings', '设置');
       default: return t('Home', '主页');

@@ -20,16 +20,27 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
     case 'house.fill':
       return (
         <svg {...props}>
-          <path d="M12 2.1a1.2 1.2 0 0 0-.85.35L2.6 10.9a1.2 1.2 0 0 0 .85 2.05H4v7.75c0 .66.54 1.2 1.2 1.2h13.6c.66 0 1.2-.54 1.2-1.2V12.95h.55a1.2 1.2 0 0 0 .85-2.05L12.85 2.45A1.2 1.2 0 0 0 12 2.1z"/>
+          <path d="M12 2.5a1.2 1.2 0 0 0-.82.33L2.45 10.85a1.2 1.2 0 0 0 .82 2.07H4.5v7.58c0 .83.67 1.5 1.5 1.5h12c.83 0 1.5-.67 1.5-1.5V12.92h1.23a1.2 1.2 0 0 0 .82-2.07L12.82 2.83A1.2 1.2 0 0 0 12 2.5z"/>
         </svg>
       );
 
-    /* SF Symbol: globe / network */
+    /* SF Symbol: globe / network (Apple SF Symbols High-Precision Symmetrical Vector) */
     case 'network':
     case 'globe':
       return (
-        <svg {...props}>
-          <path fillRule="evenodd" clipRule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.93 6h-3.47a15.7 15.7 0 0 0-1.8-3.79A8.02 8.02 0 0 1 18.93 8zM12 4.07c.86 1.13 1.58 2.45 2.06 3.93H9.94c.48-1.48 1.2-2.8 2.06-3.93zM4.07 14A8.04 8.04 0 0 1 4 12c0-.69.07-1.36.2-2h3.64c-.08.66-.13 1.32-.13 2 0 .68.05 1.34.13 2H4.07zm1.06 2h3.47c.43 1.4.98 2.65 1.8 3.79A8.02 8.02 0 0 1 5.13 16zm3.47-8H5.13a8.02 8.02 0 0 1 5.2-3.79A15.7 15.7 0 0 0 8.6 8zm3.4 11.93c-.86-1.13-1.58-2.45-2.06-3.93h4.12c-.48 1.48-1.2 2.8-2.06 3.93zM9.71 14c-.07-.66-.11-1.32-.11-2 0-.68.04-1.34.11-2h4.58c.07.66.11 1.32.11 2 0 .68-.04 1.34-.11 2H9.71zm6.69 5.79c.82-1.14 1.37-2.39 1.8-3.79h3.47a8.02 8.02 0 0 1-5.27 3.79zM16.29 14c.08-.66.13-1.32.13-2 0-.68-.05-1.34-.13-2h3.64c.13.64.2 1.31.2 2 0 .69-.07 1.36-.2 2h-3.64z"/>
+        <svg
+          {...props}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.85"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="9.5" />
+          <ellipse cx="12" cy="12" rx="4.6" ry="9.5" />
+          <line x1="2.5" y1="12" x2="21.5" y2="12" />
+          <path d="M4.6 7.2a15.8 15.8 0 0 0 14.8 0" />
+          <path d="M4.6 16.8a15.8 15.8 0 0 1 14.8 0" />
         </svg>
       );
 
@@ -38,9 +49,9 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
     case 'server.rack':
       return (
         <svg {...props}>
-          <path d="M12 2C6.48 2 2 3.34 2 5v4c0 1.66 4.48 3 10 3s10-1.34 10-3V5c0-1.66-4.48-3-10-3zm0 2c4.42 0 8 .9 8 1.5s-3.58 1.5-8 1.5-8-.9-8-1.5S7.58 4 12 4z"/>
-          <path d="M2 11v4c0 1.66 4.48 3 10 3s10-1.34 10-3v-4c-1.8 1.13-4.7 1.8-8 1.95V14c0 .55-.45 1-1 1s-1-.45-1-1v-1.05C8.7 12.8 5.8 12.13 2 11z"/>
-          <path d="M2 17v2c0 1.66 4.48 3 10 3s10-1.34 10-3v-2c-1.8 1.13-4.7 1.8-8 1.95V20c0 .55-.45 1-1 1s-1-.45-1-1v-1.05C8.7 18.8 5.8 18.13 2 17z"/>
+          <path d="M12 2C6.48 2 2 3.34 2 5v3.5c0 1.66 4.48 3 10 3s10-1.34 10-3V5c0-1.66-4.48-3-10-3zm0 2c4.42 0 8 .9 8 1.5s-3.58 1.5-8 1.5-8-.9-8-1.5S7.58 4 12 4z"/>
+          <path d="M2 10.5v3.5c0 1.66 4.48 3 10 3s10-1.34 10-3v-3.5c-1.8 1.13-4.7 1.8-8 1.95V13c0 .55-.45 1-1 1s-1-.45-1-1v-.55C8.7 12.3 5.8 11.63 2 10.5z"/>
+          <path d="M2 16v3c0 1.66 4.48 3 10 3s10-1.34 10-3v-3c-1.8 1.13-4.7 1.8-8 1.95V18c0 .55-.45 1-1 1s-1-.45-1-1v-.05C8.7 17.8 5.8 17.13 2 16z"/>
         </svg>
       );
 
@@ -133,6 +144,38 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
       return (
         <svg {...props}>
           <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+        </svg>
+      );
+
+    /* SF Symbol: info.circle */
+    case 'info.circle':
+      return (
+        <svg
+          {...props}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" strokeWidth="2.5" />
+        </svg>
+      );
+
+    /* SF Symbol: checkmark */
+    case 'checkmark':
+      return (
+        <svg
+          {...props}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
         </svg>
       );
 

@@ -6,6 +6,7 @@ import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import net from 'net';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ const COOKIECLOUD_CONFIG = path.join(getHostDataDir(), 'cookiecloud.json');
 const COOKIECLOUD_LOG = path.join(getHostDataDir(), 'update_cookies.log');
 const DECRYPT_SCRIPT = path.join(getHostDataDir(), 'decrypt.py');
 const BYPASS_TXT = path.join(getHostDataDir(), 'bypass.txt');
+const PROXY_STATE_FILE = path.join(getHostDataDir(), 'proxy_state.json');
 
 
 async function getEnvVars() {
@@ -89,15 +91,29 @@ async function updateEnvVars(updates) {
     });
 }
 
-// === Proxy Nodes API ===
-app.get('/api/nodes', async (req, res) => {
-    try {
+/* ============================================================================
+ * Proxy Nodes & State Management API
+ * ============================================================================ */
+async function getProxyState() {
+    let state = {
+        vpnEnabled: true,
+        selectedNode: 'auto',
+        nodes: []
+    };
+    if (existsSync(PROXY_STATE_FILE)) {
+        try {
+            const data = await fs.readFile(PROXY_STATE_FILE, 'utf8');
+            state = { ...state, ...JSON.parse(data) };
+        } catch (e) {
+            console.error('Failed to parse proxy_state.json:', e);
+        }
+    }
+    /* If state.nodes is empty, parse from GOST_COMMAND */
+    if (!state.nodes || state.nodes.length === 0) {
         const envVars = await getEnvVars();
         const commandStr = envVars.GOST_COMMAND || '-L=:8888';
-
-        const nodes = [];
         const parts = commandStr.split('-F=').slice(1);
-        
+        const parsedNodes = [];
         parts.forEach(part => {
             const match = part.match(/^rr:\/\/([^\s\?]+)([\s\S]*)/);
             if (match) {
@@ -113,7 +129,6 @@ app.get('/api/nodes', async (req, res) => {
                 let maxFails = '3';
                 let failTimeout = '30s';
                 let bypass = false;
-
                 if (paramsStr.includes('max_fails=')) {
                     const mfMatch = paramsStr.match(/max_fails=(\d+)/);
                     if (mfMatch) maxFails = mfMatch[1];
@@ -125,58 +140,169 @@ app.get('/api/nodes', async (req, res) => {
                 if (paramsStr.includes('-bypass=/bypass.txt')) {
                     bypass = true;
                 }
-                nodes.push({ url, auth, maxFails, failTimeout, bypass, rawParams: paramsStr });
+                parsedNodes.push({ url, auth, maxFails, failTimeout, bypass });
             } else {
-                const fallbackMatch = part.match(/^rr:\/\/([^\s]+)/);
-                if (fallbackMatch) {
-                    let fullUrl = fallbackMatch[1];
-                    let url = fullUrl;
-                    let auth = '';
-                    if (fullUrl.includes('@')) {
-                        const authParts = fullUrl.split('@');
-                        auth = authParts[0];
-                        url = authParts[1];
-                    }
-                    nodes.push({ url, auth, maxFails: '3', failTimeout: '30s', bypass: false, rawParams: '' });
-                } else {
-                    nodes.push({ url: part.trim().replace(/^rr:\/\//, ''), auth: '', maxFails: '3', failTimeout: '30s', bypass: false, rawParams: '' });
-                }
+                const clean = part.trim().replace(/^rr:\/\//, '');
+                if (clean) parsedNodes.push({ url: clean, auth: '', maxFails: '3', failTimeout: '30s', bypass: false });
             }
         });
+        state.nodes = parsedNodes;
+        try {
+            await fs.writeFile(PROXY_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+        } catch (e) {}
+    }
+    return state;
+}
 
-        res.json({ nodes });
+async function saveProxyState(state) {
+    await fs.writeFile(PROXY_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+}
+
+function buildGostCommand(nodes, selectedNode, vpnEnabled) {
+    const baseCommand = '-L=:8888';
+    if (!vpnEnabled || !nodes || nodes.length === 0) {
+        return baseCommand;
+    }
+    let targetNodes = [];
+    if (selectedNode === 'auto' || !selectedNode) {
+        /* Auto mode: all nodes with round-robin */
+        targetNodes = nodes;
+    } else {
+        /* Specific node routing */
+        const found = nodes.find(n => n.url === selectedNode);
+        targetNodes = found ? [found] : nodes;
+    }
+    const forwarders = targetNodes.map(node => {
+        let p = `?max_fails=${node.maxFails || 3}&fail_timeout=${node.failTimeout || '30s'}`;
+        if (node.bypass) p += ' -bypass=/bypass.txt';
+        const ipPort = node.url.replace(/^rr:\/\//, '');
+        const authStr = node.auth ? `${node.auth}@` : '';
+        return `-F=rr://${authStr}${ipPort}${p}`;
+    });
+    return [baseCommand, ...forwarders].join(' ');
+}
+
+app.get('/api/nodes', async (req, res) => {
+    try {
+        const state = await getProxyState();
+        res.json({
+            nodes: state.nodes || [],
+            selectedNode: state.selectedNode || 'auto',
+            vpnEnabled: state.vpnEnabled !== false
+        });
     } catch (error) {
         console.error("Error reading nodes:", error);
-        res.status(500).json({ error: 'Failed to read docker-compose.yml' });
+        res.status(500).json({ error: 'Failed to read proxy state' });
     }
 });
 
 app.post('/api/nodes', async (req, res) => {
     try {
-        const { nodes } = req.body;
+        const { nodes, selectedNode, vpnEnabled } = req.body;
         if (!Array.isArray(nodes)) return res.status(400).json({ error: 'Nodes must be an array' });
 
-        const envVars = await getEnvVars();
-        const commandStr = envVars.GOST_COMMAND || '-L=:8888';
-        const baseCommand = commandStr.split('-F=')[0].trim() || '-L=:8888';
+        const state = await getProxyState();
+        state.nodes = nodes;
+        if (selectedNode !== undefined) state.selectedNode = selectedNode;
+        if (vpnEnabled !== undefined) state.vpnEnabled = vpnEnabled;
+        await saveProxyState(state);
 
-        const newNodesLines = nodes.map(node => {
-            // Build the params string
-            let p = `?max_fails=${node.maxFails || 3}&fail_timeout=${node.failTimeout || '30s'}`;
-            if (node.bypass) p += ' -bypass=/bypass.txt';
-            // ensure we don't double prepend rr://
-            const ipPort = node.url.replace(/^rr:\/\//, '');
-            const authStr = node.auth ? `${node.auth}@` : '';
-            return `-F=rr://${authStr}${ipPort}${p}`;
-        });
-        
-        const newCommandBlock = [baseCommand, ...newNodesLines].filter(Boolean).join(' ');
-        
+        const newCommandBlock = buildGostCommand(state.nodes, state.selectedNode, state.vpnEnabled);
         await updateEnvVars({ GOST_COMMAND: newCommandBlock });
-        res.json({ success: true, message: 'Nodes updated successfully and proxy restarted' });
+
+        exec(`docker restart rsshub-gost-1 || docker compose restart gost`, { cwd: getHostDataDir() }, (error) => {
+            if (error) console.error('Failed to restart gost:', error);
+        });
+
+        res.json({ success: true, message: 'Nodes updated successfully and proxy reloaded', state });
     } catch (error) {
         console.error("Error updating nodes:", error);
         res.status(500).json({ error: 'Failed to update nodes' });
+    }
+});
+
+app.post('/api/nodes/select', async (req, res) => {
+    try {
+        const { selectedNode } = req.body;
+        if (!selectedNode) return res.status(400).json({ error: 'selectedNode is required' });
+
+        const state = await getProxyState();
+        state.selectedNode = selectedNode;
+        await saveProxyState(state);
+
+        const newCommandBlock = buildGostCommand(state.nodes, state.selectedNode, state.vpnEnabled);
+        await updateEnvVars({ GOST_COMMAND: newCommandBlock });
+
+        exec(`docker restart rsshub-gost-1 || docker compose restart gost`, { cwd: getHostDataDir() }, (error) => {
+            if (error) console.error('Failed to restart gost on node select:', error);
+        });
+
+        res.json({ success: true, selectedNode: state.selectedNode });
+    } catch (error) {
+        console.error("Error selecting node:", error);
+        res.status(500).json({ error: 'Failed to select node' });
+    }
+});
+
+app.post('/api/nodes/toggle', async (req, res) => {
+    try {
+        const { enabled } = req.body;
+        const state = await getProxyState();
+        state.vpnEnabled = Boolean(enabled);
+        await saveProxyState(state);
+
+        const newCommandBlock = buildGostCommand(state.nodes, state.selectedNode, state.vpnEnabled);
+        await updateEnvVars({ GOST_COMMAND: newCommandBlock });
+
+        exec(`docker restart rsshub-gost-1 || docker compose restart gost`, { cwd: getHostDataDir() }, (error) => {
+            if (error) console.error('Failed to restart gost on toggle:', error);
+        });
+
+        res.json({ success: true, vpnEnabled: state.vpnEnabled });
+    } catch (error) {
+        console.error("Error toggling proxy:", error);
+        res.status(500).json({ error: 'Failed to toggle proxy' });
+    }
+});
+
+app.post('/api/nodes/ping', async (req, res) => {
+    try {
+        const { url } = req.body;
+        if (!url) return res.status(400).json({ error: 'url is required' });
+        const clean = url.replace(/^[a-z]+:\/\//, '').split('@').pop();
+        const [host, portStr] = clean.split(':');
+        const port = parseInt(portStr || '80', 10);
+        if (!host || isNaN(port)) return res.status(400).json({ error: 'Invalid host or port' });
+
+        const start = Date.now();
+        const socket = new net.Socket();
+        let done = false;
+
+        socket.setTimeout(2500);
+
+        socket.connect(port, host, () => {
+            if (done) return;
+            done = true;
+            const latency = Date.now() - start;
+            socket.destroy();
+            res.json({ success: true, latency });
+        });
+
+        socket.on('error', (err) => {
+            if (done) return;
+            done = true;
+            socket.destroy();
+            res.json({ success: false, error: err.message });
+        });
+
+        socket.on('timeout', () => {
+            if (done) return;
+            done = true;
+            socket.destroy();
+            res.json({ success: false, error: 'Timeout' });
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -331,10 +457,9 @@ app.get('/api/system/status', async (req, res) => {
     try {
         const envVars = await getEnvVars();
         
-        // Count nodes
-        const commandStr = envVars.GOST_COMMAND || '-L=:8888';
-        const nodeParts = commandStr.split('-F=').slice(1);
-        const nodeCount = nodeParts.length;
+        /* Count nodes from proxy state */
+        const proxyState = await getProxyState();
+        const nodeCount = proxyState.nodes ? proxyState.nodes.length : 0;
 
         // Count bypass rules
         let bypassCount = 0;

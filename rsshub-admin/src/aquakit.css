@@ -2155,3 +2155,163 @@ html.apple-theme-dark .apple-skeleton {
 .top-back-btn {
   animation: appleNavBackBtnIn 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
+
+/* ============================================================================
+ * Apple iOS VPN List & Modal Styles
+ * ============================================================================ */
+.apple-vpn-check {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #007aff;
+  flex-shrink: 0;
+}
+
+.apple-vpn-check-placeholder {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.apple-vpn-info-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  margin: -4px 0 -4px 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #007aff;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.apple-vpn-info-btn:active {
+  opacity: 0.5;
+  transform: scale(0.92);
+}
+
+.apple-vpn-action-row {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 16px;
+  color: #007aff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--apple-transition-fast, 0.15s ease);
+}
+
+.apple-vpn-action-row:active {
+  background-color: var(--apple-bg-card-hover, rgba(255, 255, 255, 0.06));
+}
+
+.apple-vpn-footer {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--apple-text-secondary, #8e8e93);
+  padding: 8px 16px 20px 16px;
+}
+
+.apple-vpn-footer a {
+  color: #007aff;
+  text-decoration: none;
+}
+
+/* Apple iOS Sheet Modal */
+.apple-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: appleModalFadeIn 0.2s ease-out;
+}
+
+.apple-modal-dialog {
+  width: 100%;
+  max-width: 440px;
+  background: var(--apple-bg-grouped, #1c1c1e);
+  border: 1px solid var(--apple-card-border, rgba(255, 255, 255, 0.1));
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  animation: appleModalSlideUp 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes appleModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes appleModalSlideUp {
+  from { transform: translateY(24px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.apple-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 0.5px solid var(--apple-divider, rgba(255, 255, 255, 0.12));
+}
+
+.apple-modal-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--apple-text-primary, #ffffff);
+  margin: 0;
+}
+
+.apple-modal-close-btn {
+  background: var(--apple-bg-card, rgba(255, 255, 255, 0.1));
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--apple-text-secondary, #8e8e93);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.apple-modal-close-btn:active {
+  opacity: 0.6;
+}
+
+.apple-modal-body {
+  padding: 20px;
+  max-height: 75vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.apple-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 0.5px solid var(--apple-divider, rgba(255, 255, 255, 0.12));
+  background: var(--apple-bg-card, rgba(255, 255, 255, 0.03));
+}
