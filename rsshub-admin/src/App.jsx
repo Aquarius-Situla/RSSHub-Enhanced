@@ -305,7 +305,7 @@ export function App() {
             <span>{getTabTitle(activeTab)}</span>
           </button>
         )}
-        <h1 className="nav-title">
+        <h1 className="nav-title animating" key={subTab || activeTab}>
           {subTab !== null ? getSubTabTitle(subTab) : getTabTitle(activeTab)}
         </h1>
       </header>

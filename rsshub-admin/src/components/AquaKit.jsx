@@ -315,15 +315,22 @@ export function AppleNavStack({
     const [phase, setPhase] = React.useState(activeSubpage ? 'settled' : 'root');
     /* phases: 'root' | 'pushing' | 'settled' | 'popping' */
 
+    const prevSubpageRef = React.useRef(activeSubpage);
+
     React.useEffect(() => {
-        if (activeSubpage) {
+        const prev = prevSubpageRef.current;
+        prevSubpageRef.current = activeSubpage;
+
+        if (activeSubpage && !prev) {
+            /* Entering subpage: start push animation */
             setRenderedSubpage(activeSubpage);
             setPhase('pushing');
             const timer = setTimeout(() => {
                 setPhase('settled');
             }, 320);
             return () => clearTimeout(timer);
-        } else if (renderedSubpage) {
+        } else if (!activeSubpage && prev) {
+            /* Exiting subpage: start pop animation */
             setPhase('popping');
             if (typeof window !== 'undefined') {
                 window.scrollTo({ top: 0, behavior: 'instant' });
@@ -333,6 +340,10 @@ export function AppleNavStack({
                 setPhase('root');
             }, 280);
             return () => clearTimeout(timer);
+        } else if (activeSubpage && prev && activeSubpage !== prev) {
+            /* Direct switch between subpages */
+            setRenderedSubpage(activeSubpage);
+            setPhase('settled');
         }
     }, [activeSubpage]);
 
@@ -398,61 +409,24 @@ export function AppleNavStack({
         ...style
     };
 
-    let rootViewStyle = {};
-    let subpageStyle = {};
+    let rootViewClass = 'apple-nav-view';
+    let subpageClass = 'apple-subpage';
 
     if (phase === 'pushing') {
         containerStyle.overflow = 'hidden';
         containerStyle.minHeight = 'calc(100vh - 120px)';
-        rootViewStyle = {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            pointerEvents: 'none'
-        };
-        subpageStyle = {
-            position: 'relative',
-            width: '100%',
-            minHeight: '100%'
-        };
+        rootViewClass += ' is-pushing';
+        subpageClass += ' is-pushing';
     } else if (phase === 'settled') {
         containerStyle.overflow = 'visible';
-        rootViewStyle = {
-            display: 'none'
-        };
-        subpageStyle = {
-            position: 'relative',
-            width: '100%',
-            transform: 'none',
-            boxShadow: 'none',
-            opacity: 1,
-            pointerEvents: 'auto'
-        };
+        rootViewClass += ' is-settled-hidden';
+        subpageClass += ' is-settled';
     } else if (phase === 'popping') {
         containerStyle.overflow = 'hidden';
         containerStyle.minHeight = 'calc(100vh - 120px)';
-        rootViewStyle = {
-            position: 'relative',
-            width: '100%',
-            pointerEvents: 'none'
-        };
-        subpageStyle = {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%'
-        };
-    } else {
-        containerStyle.overflow = 'visible';
-        rootViewStyle = {
-            position: 'relative',
-            width: '100%'
-        };
+        rootViewClass += ' is-popping';
+        subpageClass += ' is-popping';
     }
-
-    const isRootPushed = phase === 'pushing' || phase === 'settled';
-    const isSubExiting = phase === 'popping';
 
     return React.createElement('div', {
         ref: containerRef,
@@ -460,12 +434,10 @@ export function AppleNavStack({
         style: containerStyle
     },
         React.createElement('div', {
-            className: `apple-nav-view ${isRootPushed ? 'is-pushed' : ''} ${phase === 'settled' ? 'is-hidden' : ''}`,
-            style: rootViewStyle
+            className: rootViewClass
         }, rootView),
         subpageNode ? React.createElement('div', {
-            className: `apple-subpage ${!isSubExiting ? 'active' : 'is-exiting'} ${phase === 'settled' ? 'is-settled' : ''}`,
-            style: subpageStyle
+            className: subpageClass
         }, subpageNode) : null
     );
 }
