@@ -68,4 +68,4 @@ export function HomeView({ t, showToast, subTab, onSelectSubTab }) {
   );
 }
 
-export default HomeView;\n
+export default HomeView;

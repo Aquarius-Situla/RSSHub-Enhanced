@@ -283,4 +283,4 @@ export function DataView({ t, showToast, subTab, onSelectSubTab }) {
   );
 }
 
-export default DataView;\n
+export default DataView;

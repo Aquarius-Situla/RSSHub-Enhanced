@@ -359,4 +359,4 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
   );
 }
 
-export default ProxyView;\n
+export default ProxyView;

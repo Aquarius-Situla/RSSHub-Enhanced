@@ -275,4 +275,4 @@ export function SettingsView({
   );
 }
 
-export default SettingsView;\n
+export default SettingsView;

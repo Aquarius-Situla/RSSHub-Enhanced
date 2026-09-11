@@ -198,4 +198,4 @@ export function RouteErrorsSubView({ t, showToast }) {
   );
 }
 
-export default RouteErrorsSubView;\n
+export default RouteErrorsSubView;

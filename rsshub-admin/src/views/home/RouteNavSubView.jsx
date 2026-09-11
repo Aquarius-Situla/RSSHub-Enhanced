@@ -250,4 +250,4 @@ export function RouteNavSubView({ t, showToast }) {
   );
 }
 
-export default RouteNavSubView;\n
+export default RouteNavSubView;
