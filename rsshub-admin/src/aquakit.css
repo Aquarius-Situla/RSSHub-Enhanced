@@ -503,9 +503,15 @@ html.device-mobile .apple-desktop-sidebar {
     opacity: 0.85;
 }
 
-.apple-nav-item:hover {
+@media (hover: hover) and (pointer: fine) {
+    .apple-nav-item:hover {
+        background: var(--apple-bg-card-hover);
+        color: var(--apple-text-primary);
+    }
+}
+
+.apple-nav-item:active {
     background: var(--apple-bg-card-hover);
-    color: var(--apple-text-primary);
 }
 
 .apple-nav-item.active {
@@ -576,9 +582,15 @@ html.apple-theme-light .apple-nav-item.active {
     position: relative;
 }
 
-.apple-profile-card:hover {
+@media (hover: hover) and (pointer: fine) {
+    .apple-profile-card:hover {
+        background: var(--apple-bg-card-hover);
+        color: var(--apple-text-primary);
+    }
+}
+
+.apple-profile-card:active {
     background: var(--apple-bg-card-hover);
-    color: var(--apple-text-primary);
 }
 
 .apple-profile-avatar {
@@ -1026,7 +1038,13 @@ html.device-phone.is-landscape #apple-orientation-guard {
     box-sizing: border-box;
 }
 
-.apple-row:hover {
+@media (hover: hover) and (pointer: fine) {
+    .apple-row:hover {
+        background: var(--apple-bg-card-hover);
+    }
+}
+
+.apple-row:active {
     background: var(--apple-bg-card-hover);
 }
 
@@ -1231,8 +1249,10 @@ html.device-phone.is-landscape #apple-orientation-guard {
     white-space: nowrap;
 }
 
-.apple-segment-btn:hover {
-    color: var(--apple-text-primary);
+@media (hover: hover) and (pointer: fine) {
+    .apple-segment-btn:hover {
+        color: var(--apple-text-primary);
+    }
 }
 
 .apple-segment-btn.active {
@@ -1276,8 +1296,10 @@ html.apple-theme-light .apple-segment-btn.active {
     color: #ffffff !important;
 }
 
-.apple-btn-primary:hover {
-    opacity: 0.92;
+@media (hover: hover) and (pointer: fine) {
+    .apple-btn-primary:hover {
+        opacity: 0.92;
+    }
 }
 
 /* Secondary Outline Button */
@@ -1287,8 +1309,10 @@ html.apple-theme-light .apple-segment-btn.active {
     border: 0.5px solid var(--apple-border-color);
 }
 
-.apple-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.14);
+@media (hover: hover) and (pointer: fine) {
+    .apple-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.14);
+    }
 }
 
 /* Tinted / Soft Accent Button */
@@ -1297,8 +1321,10 @@ html.apple-theme-light .apple-segment-btn.active {
     color: var(--apple-blue);
 }
 
-.apple-btn-tinted:hover {
-    background: rgba(10, 132, 255, 0.22);
+@media (hover: hover) and (pointer: fine) {
+    .apple-btn-tinted:hover {
+        background: rgba(10, 132, 255, 0.22);
+    }
 }
 
 /* Destructive Button */
@@ -1307,8 +1333,10 @@ html.apple-theme-light .apple-segment-btn.active {
     color: var(--apple-red);
 }
 
-.apple-btn-destructive:hover {
-    background: rgba(255, 69, 58, 0.22);
+@media (hover: hover) and (pointer: fine) {
+    .apple-btn-destructive:hover {
+        background: rgba(255, 69, 58, 0.22);
+    }
 }
 
 /* Button Sizing */
@@ -1599,8 +1627,10 @@ html.apple-theme-light .apple-loading-overlay {
     transform: scale(0.982);
 }
 
-.apple-health-card:hover {
-    background: var(--apple-bg-card-hover);
+@media (hover: hover) and (pointer: fine) {
+    .apple-health-card:hover {
+        background: var(--apple-bg-card-hover);
+    }
 }
 
 /* Top Header Row */
@@ -1806,8 +1836,10 @@ html.apple-theme-dark .apple-health-bar {
     transition: color 0.15s;
 }
 
-.apple-health-banner-close:hover {
-    color: var(--apple-text-primary);
+@media (hover: hover) and (pointer: fine) {
+    .apple-health-banner-close:hover {
+        color: var(--apple-text-primary);
+    }
 }
 
 .apple-health-banner-content {
@@ -1857,8 +1889,10 @@ html.apple-theme-dark .apple-health-bar {
     cursor: pointer;
 }
 
-.apple-health-banner-action:hover {
-    opacity: 0.85;
+@media (hover: hover) and (pointer: fine) {
+    .apple-health-banner-action:hover {
+        opacity: 0.85;
+    }
 }
 
 /* ============================================================================
@@ -2210,6 +2244,12 @@ html.apple-theme-dark .apple-skeleton {
   transition: background-color var(--apple-transition-fast, 0.15s ease);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .apple-vpn-action-row:hover {
+    background-color: var(--apple-bg-card-hover, rgba(255, 255, 255, 0.06));
+  }
+}
+
 .apple-vpn-action-row:active {
   background-color: var(--apple-bg-card-hover, rgba(255, 255, 255, 0.06));
 }
@@ -2314,4 +2354,38 @@ html.apple-theme-dark .apple-skeleton {
   padding: 14px 20px;
   border-top: 0.5px solid var(--apple-divider, rgba(255, 255, 255, 0.12));
   background: var(--apple-bg-card, rgba(255, 255, 255, 0.03));
+}
+
+
+/* ============================================================================
+ * Mobile Touch & Pointer Coarse Reset Safeguards (Zero Sticky Hover)
+ * ============================================================================ */
+@media (hover: none), (pointer: coarse) {
+  .apple-row:hover,
+  .apple-nav-item:hover,
+  .apple-profile-card:hover,
+  .apple-health-card:hover,
+  .apple-segment-btn:hover,
+  .apple-vpn-action-row:hover,
+  .apple-health-banner-close:hover,
+  .apple-health-banner-action:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+html.device-mobile .apple-row:hover,
+html.device-mobile .apple-nav-item:hover,
+html.device-mobile .apple-profile-card:hover,
+html.device-mobile .apple-health-card:hover,
+html.device-mobile .apple-segment-btn:hover,
+html.device-mobile .apple-vpn-action-row:hover,
+html.device-mobile .apple-health-banner-close:hover,
+html.device-mobile .apple-health-banner-action:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
 }

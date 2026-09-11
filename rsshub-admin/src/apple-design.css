@@ -164,8 +164,10 @@ html.device-mobile, html.device-mobile body, body.device-mobile { padding-left: 
   user-select: none; -webkit-user-select: none;
 }
 
-.top-back-btn:hover { background: var(--apple-bg-card-hover); }
-.top-back-btn:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .top-back-btn:hover { background: var(--apple-bg-card-hover); }
+}
+.top-back-btn:active { transform: scale(0.97); opacity: 0.6; }
 
 .top-back-btn svg {
   width: 14px; height: 14px; stroke: currentColor;
@@ -263,7 +265,10 @@ html.device-mobile .top-back-btn { display: none !important; }
   text-align: left; cursor: pointer; box-sizing: border-box;
 }
 
-.desktop-nav-item:hover { background: var(--apple-bg-card-hover); color: var(--apple-text-primary); }
+@media (hover: hover) and (pointer: fine) {
+  .desktop-nav-item:hover { background: var(--apple-bg-card-hover); color: var(--apple-text-primary); }
+}
+.desktop-nav-item:active { background: var(--apple-bg-card-hover); }
 
 .desktop-nav-item.active {
   background: rgba(255, 255, 255, 0.10) !important;
@@ -308,8 +313,10 @@ html.device-mobile .top-back-btn { display: none !important; }
   background: transparent; border: none; width: 100%; text-align: left;
 }
 
-.desktop-profile-card:hover { background: var(--apple-bg-card-hover); }
-.desktop-profile-card:active { transform: scale(0.98); }
+@media (hover: hover) and (pointer: fine) {
+  .desktop-profile-card:hover { background: var(--apple-bg-card-hover); }
+}
+.desktop-profile-card:active { transform: scale(0.98); background: var(--apple-bg-card-hover); }
 .desktop-profile-avatar { width: 16px; height: 16px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 .desktop-profile-uuid {
@@ -404,7 +411,10 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
   transition: background-color var(--apple-transition-fast); box-sizing: border-box;
 }
 
-.ios-row:hover, .setting-item:hover { background: var(--apple-bg-card-hover); }
+@media (hover: hover) and (pointer: fine) {
+  .ios-row:hover, .setting-item:hover { background: var(--apple-bg-card-hover); }
+}
+.ios-row:active, .setting-item:active { background: var(--apple-bg-card-hover); }
 
 .ios-row:not(:last-child)::after, .setting-item:not(:last-child)::after {
   content: ""; position: absolute; left: 54px; right: 0; bottom: 0;
@@ -520,11 +530,14 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
 
 .ios-btn:active { transform: scale(0.97); }
 .ios-btn.primary { background: var(--apple-blue); color: #ffffff; }
-.ios-btn.primary:hover { opacity: 0.92; }
 .ios-btn.secondary { background: var(--apple-bg-input); color: var(--apple-text-primary); border: 0.5px solid var(--apple-border-color); }
-.ios-btn.secondary:hover { background: var(--apple-bg-card-hover); }
 .ios-btn.danger { background: rgba(255, 69, 58, 0.14); color: var(--apple-red); }
-.ios-btn.danger:hover { background: rgba(255, 69, 58, 0.22); }
+
+@media (hover: hover) and (pointer: fine) {
+  .ios-btn.primary:hover { opacity: 0.92; }
+  .ios-btn.secondary:hover { background: var(--apple-bg-card-hover); }
+  .ios-btn.danger:hover { background: rgba(255, 69, 58, 0.22); }
+}
 
 /* ============================================================================
  * 14. Option Items (language/theme selectors)
@@ -537,7 +550,10 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
   user-select: none; -webkit-user-select: none;
 }
 
-.ios-option-item:hover, .apple-option-item:hover { background-color: var(--apple-bg-card-hover); }
+@media (hover: hover) and (pointer: fine) {
+  .ios-option-item:hover, .apple-option-item:hover { background-color: var(--apple-bg-card-hover); }
+}
+.ios-option-item:active, .apple-option-item:active { background-color: var(--apple-bg-card-hover); }
 .ios-option-item:not(:last-child), .apple-option-item:not(:last-child) { border-bottom: 0.5px solid var(--apple-divider); }
 
 .ios-option-item .ios-checkmark {
@@ -598,7 +614,10 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
   transition: all var(--apple-transition-fast); box-shadow: var(--apple-card-shadow);
 }
 
-.category-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); border-color: var(--apple-blue); }
+@media (hover: hover) and (pointer: fine) {
+  .category-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); border-color: var(--apple-blue); }
+}
+.category-card:active { transform: scale(0.985); }
 .category-card-content { flex: 1; min-width: 0; }
 .category-card-title { font-size: 15px; font-weight: 600; color: var(--apple-text-primary); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
 .category-card-desc { font-size: 12.5px; color: var(--apple-text-secondary); line-height: 1.4; }
@@ -842,6 +861,12 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
   transition: background-color var(--apple-transition-fast, 0.15s ease);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .apple-vpn-action-row:hover {
+    background-color: var(--apple-bg-card-hover, rgba(255, 255, 255, 0.06));
+  }
+}
+
 .apple-vpn-action-row:active {
   background-color: var(--apple-bg-card-hover, rgba(255, 255, 255, 0.06));
 }
@@ -946,4 +971,40 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
   padding: 14px 20px;
   border-top: 0.5px solid var(--apple-divider, rgba(255, 255, 255, 0.12));
   background: var(--apple-bg-card, rgba(255, 255, 255, 0.03));
+}
+
+
+/* ============================================================================
+ * Mobile Touch & Pointer Coarse Reset Safeguards (Zero Sticky Hover)
+ * ============================================================================ */
+@media (hover: none), (pointer: coarse) {
+  .ios-row:hover,
+  .setting-item:hover,
+  .desktop-nav-item:hover,
+  .desktop-profile-card:hover,
+  .ios-option-item:hover,
+  .apple-option-item:hover,
+  .category-card:hover,
+  .top-back-btn:hover,
+  .apple-vpn-action-row:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+html.device-mobile .ios-row:hover,
+html.device-mobile .setting-item:hover,
+html.device-mobile .desktop-nav-item:hover,
+html.device-mobile .desktop-profile-card:hover,
+html.device-mobile .ios-option-item:hover,
+html.device-mobile .apple-option-item:hover,
+html.device-mobile .category-card:hover,
+html.device-mobile .top-back-btn:hover,
+html.device-mobile .apple-vpn-action-row:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
