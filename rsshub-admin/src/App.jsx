@@ -242,7 +242,7 @@ export function App() {
   const getTabTitle = (tab) => {
     switch (tab) {
       case 'home': return t('Home', '主页');
-      case 'proxy': return 'VPN';
+      case 'proxy': return t('Proxy', '代理');
       case 'data': return t('Data', '数据');
       case 'settings': return t('Settings', '设置');
       default: return t('Home', '主页');
@@ -254,7 +254,7 @@ export function App() {
       case 'overview': return t('System Overview', '运行概览');
       case 'routes': return t('Route Navigator', '路由导航');
       case 'errors': return t('Error Diagnostics', '故障监控');
-      case 'nodes': return t('Proxy Nodes', '代理节点池');
+      case 'nodes': return 'VPN';
       case 'bypass': return t('Bypass Rules', '直连分流规则');
       case 'sync': return 'CookieCloud';
       case 'keys': return t('Platform API Keys', '平台 API 凭据');

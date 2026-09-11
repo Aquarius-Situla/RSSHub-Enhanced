@@ -24,23 +24,26 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    /* SF Symbol: globe / network (Apple SF Symbols High-Precision Symmetrical Vector) */
+    /* SF Symbol: network (Apple Network Hub / Proxy Routing Topology) */
     case 'network':
+      return (
+        <svg {...props}>
+          <rect x="8" y="2" width="8" height="6" rx="1.5" />
+          <path d="M11 8h2v4h4a2 2 0 0 1 2 2v2h-1v-2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2H5v-2a2 2 0 0 1 2-2h4V8z" />
+          <rect x="3" y="16" width="6" height="6" rx="1.5" />
+          <rect x="15" y="16" width="6" height="6" rx="1.5" />
+        </svg>
+      );
+
+    /* SF Symbol: globe (Apple Solid Filled Globe with Repaired Quadrants) */
     case 'globe':
       return (
-        <svg
-          {...props}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.85"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="9.5" />
-          <ellipse cx="12" cy="12" rx="4.6" ry="9.5" />
-          <line x1="2.5" y1="12" x2="21.5" y2="12" />
-          <path d="M4.6 7.2a15.8 15.8 0 0 0 14.8 0" />
-          <path d="M4.6 16.8a15.8 15.8 0 0 1 14.8 0" />
+        <svg {...props}>
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.93 6h-3.47a15.7 15.7 0 0 0-1.8-3.79A8.02 8.02 0 0 1 18.93 8zM12 4.07c.86 1.13 1.58 2.45 2.06 3.93H9.94c.48-1.48 1.2-2.8 2.06-3.93zM8.6 8H5.13a8.02 8.02 0 0 1 5.2-3.79A15.7 15.7 0 0 0 8.6 8zM4.07 14A8.04 8.04 0 0 1 4 12c0-.69.07-1.36.2-2h3.64c-.08.66-.13 1.32-.13 2 0 .68.05 1.34.13 2H4.07zM9.71 14c-.07-.66-.11-1.32-.11-2 0-.68.04-1.34.11-2h4.58c.07.66.11 1.32.11 2 0 .68-.04 1.34-.11 2H9.71zM16.29 14c.08-.66.13-1.32.13-2 0-.68-.05-1.34-.13-2h3.64c.13.64.2 1.31.2 2 0 .69-.07 1.36-.2 2h-3.64zM5.13 16h3.47c.43 1.4.98 2.65 1.8 3.79A8.02 8.02 0 0 1 5.13 16zM12 19.93c-.86-1.13-1.58-2.45-2.06-3.93h4.12c-.48 1.48-1.2 2.8-2.06 3.93zM15.46 16h3.47a8.02 8.02 0 0 1-5.27 3.79 15.7 15.7 0 0 0 1.8-3.79z"
+          />
         </svg>
       );
 

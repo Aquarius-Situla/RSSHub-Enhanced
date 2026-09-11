@@ -288,9 +288,38 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
   };
 
   /* ==========================================================================
-   * Root View: Exact 1:1 Apple iOS VPN Layout
+   * Root View: Clean Top-Level Inset Grouped Menu Cards
    * ========================================================================== */
   const rootView = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('Network & Proxy Routing', '网络与分流 (NETWORK & PROXY)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="teal" icon={<SFSymbol name="network" size={17} />} />}
+            label={t('Proxy Nodes Pool', '代理节点池')}
+            sublabel={vpnEnabled ? (selectedNode === 'auto' ? t('Auto Mode', '自动轮询模式') : selectedNode.split('@').pop().split(':')[0]) : t('Disabled', '未连接')}
+            value={`${nodes.length} ${t('Nodes', '个节点')}`}
+            chevron={true}
+            onClick={() => onSelectSubTab('nodes')}
+          />
+
+          <AppleRow
+            badge={<AppleBadge color="indigo" icon={<SFSymbol name="shield.fill" size={17} />} />}
+            label={t('Bypass Rules', '直连分流规则')}
+            sublabel="bypass.txt"
+            value={`${bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} ${t('Rules', '条规则')}`}
+            chevron={true}
+            onClick={() => onSelectSubTab('bypass')}
+          />
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
+
+  /* ==========================================================================
+   * Subpage: Nodes Pool (1:1 Apple iOS VPN Layout)
+   * ========================================================================== */
+  const nodesSubpage = (
     <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
       {/* 1. VPN Status Card */}
       <AppleGroup>
@@ -460,20 +489,77 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
           'VPN 可设置用于控制某些网络流量的路由。选择「自动」将根据可用性轮询负载并自动故障转移。'
         )}
       </div>
+    </div>
+  );
 
-      {/* 5. Whitelist & Bypass Rules Entry */}
-      <AppleGroup header={t('Direct Whitelist', '直连白名单 (BYPASS)')}>
-        <AppleCard>
-          <AppleRow
-            badge={<AppleBadge color="indigo" icon={<SFSymbol name="shield.fill" size={17} />} />}
-            label={t('Bypass Rules Whitelist', '直连分流规则')}
-            sublabel="bypass.txt"
-            value={`${bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} ${t('Rules', '条规则')}`}
-            chevron={true}
-            onClick={() => onSelectSubTab('bypass')}
+  /* ==========================================================================
+   * Subpage: Direct Routing Whitelist (bypass.txt)
+   * ========================================================================== */
+  const bypassSubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <AppleButton
+            variant="secondary"
+            size="sm"
+            onClick={() => insertBypassPreset('.bilibili.com\n.bilivideo.com\n.hdslb.com')}
+          >
+            + Bilibili
+          </AppleButton>
+          <AppleButton
+            variant="secondary"
+            size="sm"
+            onClick={() => insertBypassPreset('.weibo.com\n.weibo.cn\n.sinaimg.cn')}
+          >
+            + 微博
+          </AppleButton>
+          <AppleButton
+            variant="secondary"
+            size="sm"
+            onClick={() => insertBypassPreset('127.0.0.1\n10.0.0.0/8\n172.16.0.0/12\n192.168.0.0/16')}
+          >
+            + 局域网/内网
+          </AppleButton>
+        </div>
+
+        <AppleButton
+          variant="primary"
+          size="sm"
+          onClick={handleSaveBypass}
+          disabled={savingBypass}
+        >
+          {savingBypass ? t('Saving...', '保存中...') : t('Save Rules', '保存规则')}
+        </AppleButton>
+      </div>
+
+      <AppleGroup header={`bypass.txt (${bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} ${t('Active Rules', '条有效规则')})`}>
+        <AppleCard style={{ padding: '16px' }}>
+          <textarea
+            className="ios-textarea"
+            rows={12}
+            value={bypassText}
+            onChange={e => setBypassText(e.target.value)}
+            placeholder={t('# Enter IP CIDR or domain rules (one per line)...\n# E.g.:\n127.0.0.1\n.bilibili.com\n.weibo.com', '# 每行输入一个直连域名或 IP 段规则...\n# 例如:\n127.0.0.1\n.bilibili.com\n.weibo.com')}
           />
+          <div style={{ marginTop: '10px', fontSize: '12.5px', color: 'var(--apple-text-secondary)' }}>
+            💡 {t('Any request matching rules in bypass.txt will connect directly without routing through Gost proxy nodes.', '包含在 bypass.txt 中的域名或 IP 将不经由代理节点，直接发起请求。')}
+          </div>
         </AppleCard>
       </AppleGroup>
+    </div>
+  );
+
+  return (
+    <>
+      <AppleNavStack
+        activeSubpage={subTab}
+        onBack={() => onSelectSubTab(null)}
+        rootView={rootView}
+        subpages={{
+          nodes: nodesSubpage,
+          bypass: bypassSubpage
+        }}
+      />
 
       {/* Hidden File Input for Batch Import */}
       <input
@@ -727,75 +813,7 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
           </div>
         </div>
       )}
-    </div>
-  );
-
-  /* ==========================================================================
-   * Subpage: Direct Routing Whitelist (bypass.txt)
-   * ========================================================================== */
-  const bypassSubpage = (
-    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <AppleButton
-            variant="secondary"
-            size="sm"
-            onClick={() => insertBypassPreset('.bilibili.com\n.bilivideo.com\n.hdslb.com')}
-          >
-            + Bilibili
-          </AppleButton>
-          <AppleButton
-            variant="secondary"
-            size="sm"
-            onClick={() => insertBypassPreset('.weibo.com\n.weibo.cn\n.sinaimg.cn')}
-          >
-            + 微博
-          </AppleButton>
-          <AppleButton
-            variant="secondary"
-            size="sm"
-            onClick={() => insertBypassPreset('127.0.0.1\n10.0.0.0/8\n172.16.0.0/12\n192.168.0.0/16')}
-          >
-            + 局域网/内网
-          </AppleButton>
-        </div>
-
-        <AppleButton
-          variant="primary"
-          size="sm"
-          onClick={handleSaveBypass}
-          disabled={savingBypass}
-        >
-          {savingBypass ? t('Saving...', '保存中...') : t('Save Rules', '保存规则')}
-        </AppleButton>
-      </div>
-
-      <AppleGroup header={`bypass.txt (${bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} ${t('Active Rules', '条有效规则')})`}>
-        <AppleCard style={{ padding: '16px' }}>
-          <textarea
-            className="ios-textarea"
-            rows={12}
-            value={bypassText}
-            onChange={e => setBypassText(e.target.value)}
-            placeholder={t('# Enter IP CIDR or domain rules (one per line)...\n# E.g.:\n127.0.0.1\n.bilibili.com\n.weibo.com', '# 每行输入一个直连域名或 IP 段规则...\n# 例如:\n127.0.0.1\n.bilibili.com\n.weibo.com')}
-          />
-          <div style={{ marginTop: '10px', fontSize: '12.5px', color: 'var(--apple-text-secondary)' }}>
-            💡 {t('Any request matching rules in bypass.txt will connect directly without routing through Gost proxy nodes.', '包含在 bypass.txt 中的域名或 IP 将不经由代理节点，直接发起请求。')}
-          </div>
-        </AppleCard>
-      </AppleGroup>
-    </div>
-  );
-
-  return (
-    <AppleNavStack
-      activeSubpage={subTab}
-      onBack={() => onSelectSubTab(null)}
-      rootView={rootView}
-      subpages={{
-        bypass: bypassSubpage
-      }}
-    />
+    </>
   );
 }
 
