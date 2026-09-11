@@ -634,3 +634,27 @@ html.is-standalone .apple-tab-bar { bottom: 0; }
 }
 
 @media (orientation: landscape) and (max-width: 812px) { .orientation-guard { display: flex; } }
+
+/* ============================================================================
+ * AppleNavStack Settled Subpage & In-Flow Scrolling (Zero Truncation)
+ * ============================================================================ */
+.apple-nav-stack.is-settled {
+    overflow: visible !important;
+}
+
+.apple-subpage.is-settled {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    box-shadow: none !important;
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    min-height: auto !important;
+    width: 100% !important;
+}
+
+.apple-nav-view.is-hidden {
+    display: none !important;
+}

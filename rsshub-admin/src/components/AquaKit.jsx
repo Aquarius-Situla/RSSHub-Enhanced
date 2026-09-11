@@ -312,21 +312,26 @@ export function AppleNavStack({
     style = {}
 }) {
     const [renderedSubpage, setRenderedSubpage] = React.useState(activeSubpage);
-    const [isPushed, setIsPushed] = React.useState(Boolean(activeSubpage));
-    const [isExiting, setIsExiting] = React.useState(false);
+    const [phase, setPhase] = React.useState(activeSubpage ? 'settled' : 'root');
+    /* phases: 'root' | 'pushing' | 'settled' | 'popping' */
 
     React.useEffect(() => {
         if (activeSubpage) {
             setRenderedSubpage(activeSubpage);
-            setIsPushed(true);
-            setIsExiting(false);
+            setPhase('pushing');
+            const timer = setTimeout(() => {
+                setPhase('settled');
+            }, 320);
+            return () => clearTimeout(timer);
         } else if (renderedSubpage) {
-            setIsExiting(true);
-            setIsPushed(false);
+            setPhase('popping');
+            if (typeof window !== 'undefined') {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }
             const timer = setTimeout(() => {
                 setRenderedSubpage(null);
-                setIsExiting(false);
-            }, 300);
+                setPhase('root');
+            }, 280);
             return () => clearTimeout(timer);
         }
     }, [activeSubpage]);
@@ -358,7 +363,7 @@ export function AppleNavStack({
                 return;
             }
 
-            /* Crucial: Prevent Safari native swipe navigation and overscroll gestures */
+            /* Prevent Safari native swipe navigation and overscroll gestures */
             if (e.cancelable) {
                 e.preventDefault();
             }
@@ -385,23 +390,102 @@ export function AppleNavStack({
 
     const subpageNode = renderedSubpage ? subpages[renderedSubpage] : null;
 
-    return React.createElement('div', {
-        ref: containerRef,
-        className: `apple-nav-stack apple-nav-stack-container ${className}`.trim(),
-        style: {
+    let containerStyle = {
+        position: 'relative',
+        width: '100%',
+        overscrollBehaviorX: 'none',
+        WebkitOverscrollBehaviorX: 'none',
+        ...style
+    };
+
+    let rootViewStyle = {};
+    let subpageStyle = {};
+
+    if (phase === 'pushing') {
+        containerStyle.overflow = 'hidden';
+        containerStyle.minHeight = 'calc(100vh - 120px)';
+        rootViewStyle = {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            pointerEvents: 'none'
+        };
+        subpageStyle = {
             position: 'relative',
             width: '100%',
-            overflow: 'hidden',
-            overscrollBehaviorX: 'none',
-            WebkitOverscrollBehaviorX: 'none',
-            ...style
-        }
+            minHeight: '100%'
+        };
+    } else if (phase === 'settled') {
+        containerStyle.overflow = 'visible';
+        rootViewStyle = {
+            display: 'none'
+        };
+        subpageStyle = {
+            position: 'relative',
+            width: '100%',
+            transform: 'none',
+            boxShadow: 'none',
+            opacity: 1,
+            pointerEvents: 'auto'
+        };
+    } else if (phase === 'popping') {
+        containerStyle.overflow = 'hidden';
+        containerStyle.minHeight = 'calc(100vh - 120px)';
+        rootViewStyle = {
+            position: 'relative',
+            width: '100%',
+            pointerEvents: 'none'
+        };
+        subpageStyle = {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%'
+        };
+    } else {
+        containerStyle.overflow = 'visible';
+        rootViewStyle = {
+            position: 'relative',
+            width: '100%'
+        };
+    }
+
+    const isRootPushed = phase === 'pushing' || phase === 'settled';
+    const isSubExiting = phase === 'popping';
+
+    return React.createElement('div', {
+        ref: containerRef,
+        className: `apple-nav-stack apple-nav-stack-container ${phase === 'settled' ? 'is-settled' : ''} ${className}`.trim(),
+        style: containerStyle
     },
         React.createElement('div', {
-            className: `apple-nav-view ${isPushed ? 'is-pushed' : ''}`
+            className: `apple-nav-view ${isRootPushed ? 'is-pushed' : ''} ${phase === 'settled' ? 'is-hidden' : ''}`,
+            style: rootViewStyle
         }, rootView),
         subpageNode ? React.createElement('div', {
-            className: `apple-subpage ${!isExiting ? 'active' : 'is-exiting'}`
+            className: `apple-subpage ${!isSubExiting ? 'active' : 'is-exiting'} ${phase === 'settled' ? 'is-settled' : ''}`,
+            style: subpageStyle
         }, subpageNode) : null
     );
 }
+
+export default {
+    AppleGroup,
+    AppleCard,
+    AppleRow,
+    AppleBadge,
+    AppleStatGrid,
+    AppleStatCard,
+    AppleSegmentedControl,
+    AppleButton,
+    AppleStatusPill,
+    AppleSwitch,
+    AppleHealthGrid,
+    AppleHealthCard,
+    AppleHealthBanner,
+    AppleNavBackBtn,
+    AppleSpinner,
+    AppleSkeleton,
+    AppleNavStack
+};
