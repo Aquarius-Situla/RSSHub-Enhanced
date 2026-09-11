@@ -160,12 +160,7 @@ export function syncStandaloneTabBar() {
     : Math.min(window.screen.height, window.screen.width);
   const diff = currentScreenH - window.innerHeight;
 
-  // If status bar offset bug occurs (between 10px and 120px, avoiding keyboard)
-  if (diff >= 10 && diff <= 120) {
-    document.documentElement.style.setProperty('--tab-bar-standalone-bottom', `-${diff}px`);
-    tabBar.style.setProperty('bottom', `-${diff}px`, 'important');
-  } else if (diff <= 5) {
-    document.documentElement.style.setProperty('--tab-bar-standalone-bottom', '0px');
-    tabBar.style.removeProperty('bottom');
-  }
+  /* Ensure tab bar is cleanly anchored to bottom: 0 without negative offset clipping */
+  document.documentElement.style.setProperty('--tab-bar-standalone-bottom', '0px');
+  tabBar.style.removeProperty('bottom');
 }

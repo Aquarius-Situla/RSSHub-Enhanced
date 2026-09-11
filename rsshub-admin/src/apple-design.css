@@ -341,15 +341,23 @@ html.device-mobile .top-back-btn { display: none !important; }
 }
 
 .apple-tab-bar::after {
-  content: ""; position: absolute; left: 0; right: 0;
-  top: 100%; height: 120px; background: inherit; pointer-events: none;
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 120px;
+  background: var(--apple-bg-nav);
+  backdrop-filter: var(--apple-backdrop-blur);
+  -webkit-backdrop-filter: var(--apple-backdrop-blur);
+  pointer-events: none;
 }
 
-/* WebKit Standalone PWA Chin-Gap Robust Compensation (AquaKit spec) */
+/* Standalone WebApp CSS: Anchor cleanly to device bottom per AquaKit standard */
 @media all and (display-mode: standalone) {
-  .apple-tab-bar { bottom: var(--tab-bar-standalone-bottom, calc(100% - 100vh)); }
+  .apple-tab-bar { bottom: 0; }
 }
-html.is-standalone .apple-tab-bar { bottom: var(--tab-bar-standalone-bottom, calc(100% - 100vh)); }
+html.is-standalone .apple-tab-bar { bottom: 0; }
 
 .apple-tab-item {
   flex: 1; display: flex; flex-direction: column;
