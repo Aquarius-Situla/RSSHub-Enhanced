@@ -16,7 +16,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
   };
 
   switch (name) {
-    // SF Symbol: house.fill
+    /* SF Symbol: house.fill */
     case 'house.fill':
       return (
         <svg {...props}>
@@ -24,7 +24,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: globe / network
+    /* SF Symbol: globe / network */
     case 'network':
     case 'globe':
       return (
@@ -33,7 +33,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: cylinder.split.1x2.fill / server.rack
+    /* SF Symbol: cylinder.split.1x2.fill / server.rack */
     case 'cylinder.split.1x2.fill':
     case 'server.rack':
       return (
@@ -44,7 +44,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: gearshape.fill
+    /* SF Symbol: gearshape.fill */
     case 'gearshape.fill':
       return (
         <svg {...props}>
@@ -52,7 +52,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: square.grid.2x2.fill
+    /* SF Symbol: square.grid.2x2.fill */
     case 'square.grid.2x2.fill':
       return (
         <svg {...props}>
@@ -63,7 +63,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: safari.fill / compass
+    /* SF Symbol: safari.fill / compass */
     case 'safari.fill':
     case 'compass':
       return (
@@ -72,7 +72,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: exclamationmark.triangle.fill
+    /* SF Symbol: exclamationmark.triangle.fill */
     case 'exclamationmark.triangle.fill':
       return (
         <svg {...props}>
@@ -80,7 +80,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: arrow.clockwise
+    /* SF Symbol: arrow.clockwise */
     case 'arrow.clockwise':
       return (
         <svg {...props}>
@@ -88,7 +88,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: checkmark.circle.fill
+    /* SF Symbol: checkmark.circle.fill */
     case 'checkmark.circle.fill':
       return (
         <svg {...props}>
@@ -96,7 +96,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: lock.fill
+    /* SF Symbol: lock.fill */
     case 'lock.fill':
       return (
         <svg {...props}>
@@ -104,7 +104,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: slider.horizontal.3
+    /* SF Symbol: slider.horizontal.3 */
     case 'slider.horizontal.3':
       return (
         <svg {...props}>
@@ -112,7 +112,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: shield.fill
+    /* SF Symbol: shield.fill */
     case 'shield.fill':
       return (
         <svg {...props}>
@@ -120,7 +120,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: key.fill
+    /* SF Symbol: key.fill */
     case 'key.fill':
       return (
         <svg {...props}>
@@ -128,7 +128,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // SF Symbol: tray.full.fill
+    /* SF Symbol: tray.full.fill */
     case 'tray.full.fill':
       return (
         <svg {...props}>
@@ -136,7 +136,7 @@ export function SFSymbol({ name, size = 20, className = '', style = {} }) {
         </svg>
       );
 
-    // Default fallback circle
+    /* Default fallback circle */
     default:
       return (
         <svg {...props}>

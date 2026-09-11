@@ -1,5 +1,21 @@
-import React, { useState, useEffect } from 'react';
+/* ============================================================================
+ * SettingsView.jsx — AquaKit Authentic 3-Section Settings Architecture
+ * ============================================================================
+ * COMMENTING STANDARDS:
+ * 1. Block comments only. Inline comments are strictly prohibited.
+ * 2. Section dividers use the === banner format.
+ * 3. All prose is written in English.
+ * ============================================================================ */
+
+import React from 'react';
 import SFSymbol from '../components/SFSymbols.jsx';
+import {
+  AppleGroup,
+  AppleCard,
+  AppleRow,
+  AppleBadge,
+  AppleNavStack
+} from '../components/AquaKit.jsx';
 
 export function SettingsView({
   t,
@@ -12,77 +28,6 @@ export function SettingsView({
   currentTheme,
   onThemeChange
 }) {
-  const [accessKey, setAccessKey] = useState('');
-  const [md5Hash, setMd5Hash] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [restarting, setRestarting] = useState(false);
-
-  const fetchConfig = () => {
-    fetch('api/rsshub/config')
-      .then(r => r.json())
-      .then(d => {
-        setAccessKey(d.accessKey || '');
-        setMd5Hash(d.md5 || '');
-      })
-      .catch(() => {});
-  };
-
-  useEffect(() => {
-    fetchConfig();
-  }, []);
-
-  const handleGenerateRandomKey = (e) => {
-    e.stopPropagation();
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let result = '';
-    for (let i = 0; i < 24; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setAccessKey(result);
-    showToast(t('Generated strong random Access Key!', '已生成高强度随机访问控制密钥！'));
-  };
-
-  const handleSaveConfig = async (e) => {
-    e.stopPropagation();
-    setSaving(true);
-    try {
-      const res = await fetch('api/rsshub/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessKey })
-      });
-      const data = await res.json();
-      showToast(data.message || t('Access Key updated successfully!', 'ACCESS_KEY 已更新并生效！'));
-      fetchConfig();
-    } catch (err) {
-      showToast(t('Failed to save Access Key', '保存 ACCESS_KEY 失败'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleRestartRsshub = async (e) => {
-    e.stopPropagation();
-    if (!window.confirm(t('Restart RSSHub container to apply changes?', '确定要重启 RSSHub 容器使配置即刻生效吗？'))) return;
-    setRestarting(true);
-    try {
-      const res = await fetch('api/rsshub/restart', { method: 'POST' });
-      const data = await res.json();
-      showToast(data.message || t('RSSHub restarted successfully!', 'RSSHub 容器重启完成！'));
-    } catch (err) {
-      showToast(t('Failed to restart RSSHub', '重启 RSSHub 失败'));
-    } finally {
-      setRestarting(false);
-    }
-  };
-
-  const handleCopyMd5 = (e) => {
-    e.stopPropagation();
-    if (!md5Hash) return;
-    navigator.clipboard.writeText(md5Hash);
-    showToast(t('MD5 hash copied to clipboard!', 'MD5 校验码已复制！'));
-  };
-
   const getLangLabel = (code) => {
     if (code === 'zh') return '简体中文';
     if (code === 'en') return 'English';
@@ -95,458 +40,239 @@ export function SettingsView({
     return t('Follow System', '跟随系统');
   };
 
-  // Sub-page: Language
-  if (subTab === 'lang') {
-    return (
-      <div className="fade-in">
-        <div className="ios-section-header">{t('Language & Region', '语言与地区 (LANGUAGE)')}</div>
-        <div className="ios-card">
-          <div
-            className={`ios-option-item ${currentLang === 'auto' ? 'selected' : ''}`}
-            onClick={() => onLanguageChange('auto')}
-          >
-            <div className="lang-text-group">
-              <span className="lang-primary-name">{t('Follow System', '自动')}</span>
-              <span className="lang-secondary-desc">{t('Follow browser language · Auto', '跟随浏览器首选语言')}</span>
-            </div>
-            {currentLang === 'auto' && (
-              <svg className="ios-checkmark" viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-
-          <div
-            className={`ios-option-item ${currentLang === 'zh' ? 'selected' : ''}`}
-            onClick={() => onLanguageChange('zh')}
-          >
-            <div className="lang-text-group">
-              <span className="lang-primary-name">简体中文</span>
-              <span className="lang-secondary-desc">中文界面显示 · Simplified Chinese</span>
-            </div>
-            {currentLang === 'zh' && (
-              <svg className="ios-checkmark" viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-
-          <div
-            className={`ios-option-item ${currentLang === 'en' ? 'selected' : ''}`}
-            onClick={() => onLanguageChange('en')}
-          >
-            <div className="lang-text-group">
-              <span className="lang-primary-name">English</span>
-              <span className="lang-secondary-desc">English user interface</span>
-            </div>
-            {currentLang === 'en' && (
-              <svg className="ios-checkmark" viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Sub-page: Theme / Appearance
-  if (subTab === 'theme') {
-    return (
-      <div className="fade-in">
-        <div className="ios-section-header">{t('Appearance & Theme', '外观与主题 (APPEARANCE)')}</div>
-        <div className="ios-card">
-          <div
-            className={`ios-option-item ${currentTheme === 'auto' ? 'selected' : ''}`}
-            onClick={() => onThemeChange('auto')}
-          >
-            <div className="lang-text-group">
-              <span className="lang-primary-name">{t('Follow System', '跟随系统')}</span>
-              <span className="lang-secondary-desc">{t('Switch automatically based on OS dark/light mode', '根据系统明暗模式自动无缝切换')}</span>
-            </div>
-            {currentTheme === 'auto' && (
-              <svg className="ios-checkmark" viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-
-          <div
-            className={`ios-option-item ${currentTheme === 'dark' ? 'selected' : ''}`}
-            onClick={() => onThemeChange('dark')}
-          >
-            <div className="lang-text-group">
-              <span className="lang-primary-name">{t('Dark Mode', '深色模式')}</span>
-              <span className="lang-secondary-desc">{t('Authentic Apple OLED black and frosted glass', '原生 Apple 纯黑 OLED 与毛玻璃')}</span>
-            </div>
-            {currentTheme === 'dark' && (
-              <svg className="ios-checkmark" viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-
-          <div
-            className={`ios-option-item ${currentTheme === 'light' ? 'selected' : ''}`}
-            onClick={() => onThemeChange('light')}
-          >
-            <div className="lang-text-group">
-              <span className="lang-primary-name">{t('Light Mode', '浅色模式')}</span>
-              <span className="lang-secondary-desc">{t('Crisp high-contrast Apple frosted light mode', '清爽通透的高对比度 Apple 浅色')}</span>
-            </div>
-            {currentTheme === 'light' && (
-              <svg className="ios-checkmark" viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Sub-page: About
-  if (subTab === 'about') {
-    return (
-      <div className="fade-in">
-        <div className="ios-section-header">{t('About RSSHub Enhanced', '关于 RSSHub Enhanced')}</div>
-        <div className="ios-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div className="ios-badge badge-blue" style={{ width: '44px', height: '44px', borderRadius: '12px' }}>
-              <SFSymbol name="bolt.fill" size={24} />
-            </div>
-            <div>
-              <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--apple-text-primary)' }}>RSSHub Enhanced</div>
-              <div style={{ fontSize: '13px', color: 'var(--apple-text-secondary)', marginTop: '2px' }}>v1.0.0 (PWA)</div>
-            </div>
-          </div>
-          <div style={{ fontSize: '13.5px', color: 'var(--apple-text-secondary)', lineHeight: 1.6 }}>
-            {t(
-              'RSSHub Enhanced is an enterprise-grade RSS feed generator and orchestration platform with intelligent proxy pooling, CookieCloud synchronization, and native Apple HIG design system integration.',
-              'RSSHub Enhanced 是一套集微服务健康看板、智能代理池分流、CookieCloud 双向加密同步与原生 Apple HIG 设计规范于一体的高性能订阅枢纽控制台。'
-            )}
-          </div>
-        </div>
-
-        <div className="ios-section-header">{t('Open Source & Upstream', '开源与上游生态')}</div>
-        <div className="ios-card">
-          <div className="ios-row has-badge">
-            <div className="ios-row-title">
-              <div className="ios-badge badge-indigo">
-                <SFSymbol name="sparkles" size={17} />
-              </div>
-              <span>AquaKit</span>
-            </div>
-            <div className="ios-row-accessory">
-              <span className="ios-row-value">v1.0.0</span>
-            </div>
-          </div>
-
-          <a
-            href="https://github.com/Aquarius-Situla/RSSHub-Enhanced"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ios-row has-badge"
-          >
-            <div className="ios-row-title">
-              <div className="ios-badge badge-teal">
-                <SFSymbol name="link" size={17} />
-              </div>
-              <span>GitHub 源码仓库</span>
-            </div>
-            <div className="ios-row-accessory">
-              <span className="ios-row-value">Aquarius-Situla</span>
-              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-            </div>
-          </a>
-
-          <a
-            href="https://docs.rsshub.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ios-row has-badge"
-          >
-            <div className="ios-row-title">
-              <div className="ios-badge badge-orange">
-                <SFSymbol name="book.closed.fill" size={17} />
-              </div>
-              <span>RSSHub 官方文档</span>
-            </div>
-            <div className="ios-row-accessory">
-              <span className="ios-row-value">docs.rsshub.app</span>
-              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-            </div>
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  // Sub-page: Privacy & Legal
-  if (subTab === 'privacy') {
-    return (
-      <div className="fade-in">
-        <div className="ios-section-header">{t('Privacy Policy', '隐私政策与免责声明')}</div>
-        <div className="ios-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--apple-text-primary)' }}>
-            {t('Local Sovereignty & Data Protection', '本地主权与数据安全声明')}
-          </div>
-          <div style={{ fontSize: '13.5px', color: 'var(--apple-text-secondary)', lineHeight: 1.6 }}>
-            {t(
-              'This admin portal runs completely within your private self-hosted container environment. No telemetry, traffic data, access tokens, or CookieCloud keys are ever sent to third-party tracking services.',
-              '本管理控制台完全运行于您的私有自建容器网络中。所有的网络代理配置、CookieCloud 凭据解密、路由访问控制密钥均只保存在本地存储和环境变量中，绝不向任何第三方上报遥测或收集使用数据。'
-            )}
-          </div>
-          <div style={{ fontSize: '13.5px', color: 'var(--apple-text-secondary)', lineHeight: 1.6 }}>
-            {t(
-              'Users are responsible for complying with local regulations and destination site Terms of Service when configuring automated feed retrieval frequencies.',
-              '使用者在配置 RSS 规则与抓取频率时，请严格遵守目标服务站点的 Robots 协议与使用条款，合理配置缓存与防爬分流。'
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Sub-page: Access Key
-  if (subTab === 'accessKey') {
-    return (
-      <div className="fade-in">
-        <div className="ios-section-header">{t('Access Control Key', '访问控制密钥 (ACCESS_KEY)')}</div>
-        <div className="ios-card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            {t(
-              'Protects all RSS feeds from unauthorized scraping via (?code=md5) verification parameter.',
-              '开启后，所有订阅路由必须携带 MD5 鉴权摘要参数 (?code=md5)，防止接口被公开盗刷。留空则代表公开访问。'
-            )}
-          </div>
-          <input
-            type="text"
-            className="ios-input"
-            style={{ fontFamily: 'var(--sys-mono)', fontSize: '14px' }}
-            value={accessKey}
-            onChange={e => setAccessKey(e.target.value)}
-            placeholder={t('Leave empty to disable auth (public)', '留空则不开启访问限制 (公开)')}
+  /* Root View (Strictly 3 Groups: Preferences, About & Legal, Version) */
+  const rootView = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      {/* 1. 偏好设置 (PREFERENCES) */}
+      <AppleGroup header={t('Preferences', '偏好设置 (PREFERENCES)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="blue" icon={<SFSymbol name="globe" size={17} />} />}
+            label={t('Language & Region', '语言与地区 (Language & Region)')}
+            value={getLangLabel(currentLang)}
+            chevron={true}
+            onClick={() => onSelectSubTab('lang')}
           />
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
-            <button
-              type="button"
-              className="ios-btn secondary"
-              onClick={handleGenerateRandomKey}
-            >
-              🎲 {t('Random Key', '生成强随机密钥')}
-            </button>
-            <button
-              type="button"
-              className="ios-btn secondary"
-              onClick={handleRestartRsshub}
-              disabled={restarting}
-            >
-              {restarting ? t('Restarting...', '重启中...') : t('Restart RSSHub', '重启容器')}
-            </button>
-            <button
-              type="button"
-              className="ios-btn primary"
-              onClick={handleSaveConfig}
-              disabled={saving}
-            >
-              {saving ? t('Saving...', '保存中...') : t('Save Key', '保存密钥')}
-            </button>
-          </div>
-        </div>
 
-        <div className="ios-section-header">{t('MD5 Verification Code', '全局 MD5 鉴权摘要 (MD5 CODE)')}</div>
-        <div className="ios-card">
-          <div className="ios-row has-badge">
-            <div className="ios-row-title">
-              <div className="ios-badge badge-orange">
-                <SFSymbol name="key.fill" size={17} />
-              </div>
-              <span>{t('Global MD5 Verification Code', '全局 MD5 摘要')}</span>
-            </div>
-            <div className="ios-row-accessory">
-              <span className="ios-row-value" style={{ fontFamily: 'var(--sys-mono)', fontSize: '12.5px' }}>
-                {md5Hash ? (md5Hash.length > 18 ? `${md5Hash.substring(0, 16)}...` : md5Hash) : t('None', '无')}
-              </span>
-              {md5Hash && (
-                <button
-                  type="button"
-                  className="ios-btn secondary small"
-                  onClick={handleCopyMd5}
-                >
-                  {t('Copy', '复制')}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+          <AppleRow
+            badge={<AppleBadge color="purple" icon={<SFSymbol name="slider.horizontal.3" size={17} />} />}
+            label={t('Appearance & Theme', '外观与主题 (Appearance)')}
+            value={getThemeLabel(currentTheme)}
+            chevron={true}
+            onClick={() => onSelectSubTab('theme')}
+          />
+        </AppleCard>
+      </AppleGroup>
 
-  // Sub-page: SSO / NPM Reverse Proxy
-  if (subTab === 'sso') {
-    return (
-      <div className="fade-in">
-        <div className="ios-section-header">{t('SSO & Reverse Proxy', '反代与单点登录 (SSO / NPM)')}</div>
-        <div className="ios-card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            {t(
-              'This management portal is decoupled on internal port 3000. For public access, route through Nginx Proxy Manager with Situla Auth forward authentication headers, keeping RSSHub RSS feed endpoints public and fast.',
-              '本管理门户运行于内部 3000 端口。推荐在 NPM 反代层挂载 Situla Auth 前置认证，管理控制台享受 SSO 保护的同时，外部 RSS 客户端订阅路由直接直通，兼顾极致安全与高速解析。'
-            )}
-          </div>
-          <div style={{
-            background: 'var(--input-bg)',
-            padding: '12px 14px',
-            borderRadius: '9px',
-            fontSize: '12px',
-            color: 'var(--text-secondary)',
-            fontFamily: 'var(--sys-mono)',
-            lineHeight: 1.6,
-            wordBreak: 'break-all'
-          }}>
-            npm: 127.0.0.1:81 ➔ Forward Auth: http://situla-auth:3000/api/verify ➔ upstream: rsshub-admin:3000
-          </div>
-        </div>
-      </div>
-    );
-  }
+      {/* 2. 关于与声明 (ABOUT & LEGAL) */}
+      <AppleGroup header={t('About & Legal', '关于与声明 (ABOUT & LEGAL)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="blue" icon={<SFSymbol name="info.circle.fill" size={17} />} />}
+            label={t('About RSSHub Enhanced', '关于 RSSHub Enhanced')}
+            chevron={true}
+            onClick={() => onSelectSubTab('about')}
+          />
 
-  // Root Menu: Strict Apple HIG Inset Grouped layout (AquaKit standard)
-  return (
-    <div className="fade-in">
-      <div className="ios-group-container">
-        {/* ==================================================================
-         * Group 1: Preferences (偏好设置)
-         * ================================================================== */}
-        <div id="sec-preferences">
-          <div className="ios-section-header">{t('Preferences', '偏好设置 (PREFERENCES)')}</div>
-          <div className="ios-card">
-            {/* Language & Region */}
-            <div
-              className="ios-row has-badge"
-              onClick={() => onSelectSubTab && onSelectSubTab('lang')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="ios-row-title">
-                <div className="ios-badge badge-teal">
-                  <SFSymbol name="globe" size={17} />
-                </div>
-                <span>{t('Language & Region', '语言与地区 (Language)')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">{getLangLabel(currentLang)}</span>
-                <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-              </div>
-            </div>
+          <AppleRow
+            badge={<AppleBadge color="gray" icon={<SFSymbol name="shield.checkerboard" size={17} />} />}
+            label={t('Privacy & Disclaimer', '隐私政策与免责声明')}
+            chevron={true}
+            onClick={() => onSelectSubTab('privacy')}
+          />
+        </AppleCard>
+      </AppleGroup>
 
-            {/* Appearance & Theme */}
-            <div
-              className="ios-row has-badge"
-              onClick={() => onSelectSubTab && onSelectSubTab('theme')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="ios-row-title">
-                <div className="ios-badge badge-purple">
-                  <SFSymbol name="slider.horizontal.3" size={17} />
-                </div>
-                <span>{t('Appearance & Theme', '外观与主题 (Appearance)')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">{getThemeLabel(currentTheme)}</span>
-                <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* 3. 版本 (VERSION) */}
+      <AppleGroup
+        header={t('Version', '版本 (VERSION)')}
+        footer={t(
+          'Built strictly on Apple Human Interface Guidelines standards with AquaKit Web UI framework.',
+          '本应用基于 Apple Human Interface Guidelines 设计规范构建，采用 AquaKit 开源 UI 框架。'
+        )}
+      >
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="indigo" icon={<SFSymbol name="sparkles" size={17} />} />}
+            label="AquaKit"
+            value="v1.0.0"
+          />
 
-        {/* ==================================================================
-         * Group 2: About & Legal (关于与声明)
-         * ================================================================== */}
-        <div id="sec-about-legal">
-          <div className="ios-section-header">{t('About & Legal', '关于与声明 (ABOUT & LEGAL)')}</div>
-          <div className="ios-card">
-            <div
-              className="ios-row has-badge"
-              onClick={() => onSelectSubTab && onSelectSubTab('about')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="ios-row-title">
-                <div className="ios-badge badge-blue">
-                  <SFSymbol name="info.circle.fill" size={17} />
-                </div>
-                <span>{t('About RSSHub Enhanced', '关于 RSSHub Enhanced')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-              </div>
-            </div>
-
-            <div
-              className="ios-row has-badge"
-              onClick={() => onSelectSubTab && onSelectSubTab('privacy')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="ios-row-title">
-                <div className="ios-badge badge-dark">
-                  <SFSymbol name="shield.checkerboard" size={17} />
-                </div>
-                <span>{t('Privacy & Disclaimer', '隐私政策与免责声明')}</span>
-              </div>
-              <div className="ios-row-accessory">
-                <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ==================================================================
-         * Group 3: Version (版本)
-         * ================================================================== */}
-        <div id="sec-version">
-          <div className="ios-section-header">{t('Version', '版本 (VERSION)')}</div>
-          <div className="ios-card">
-            <div className="ios-row has-badge">
-              <div className="ios-row-title">
-                <div className="ios-badge badge-indigo">
-                  <SFSymbol name="sparkles" size={17} />
-                </div>
-                <span>AquaKit</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">v1.0.0</span>
-              </div>
-            </div>
-
-            <div className="ios-row has-badge">
-              <div className="ios-row-title">
-                <div className="ios-badge badge-green">
-                  <SFSymbol name="bolt.fill" size={17} />
-                </div>
-                <span>RSSHub Enhanced</span>
-              </div>
-              <div className="ios-row-accessory">
-                <span className="ios-row-value">v1.0.0 (PWA)</span>
-              </div>
-            </div>
-          </div>
-          <div style={{
-            fontSize: '12px',
-            color: 'var(--apple-text-tertiary)',
-            padding: '8px 16px 0 16px',
-            lineHeight: 1.45,
-            textAlign: 'center'
-          }}>
-            {t(
-              'Built strictly on Apple Human Interface Guidelines standards with AquaKit Web UI framework.',
-              '本应用基于 Apple Human Interface Guidelines 设计规范构建，采用 AquaKit 开源 UI 框架。'
-            )}
-          </div>
-        </div>
-      </div>
+          <AppleRow
+            badge={<AppleBadge color="green" icon={<SFSymbol name="bolt.fill" size={17} />} />}
+            label="RSSHub Enhanced"
+            value="v1.0.0 (PWA)"
+          />
+        </AppleCard>
+      </AppleGroup>
     </div>
+  );
+
+  /* Subpage: Language */
+  const langSubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('Select Display Language', '选择界面语言')}>
+        <AppleCard>
+          {[
+            { key: 'auto', title: t('Follow System Language', '跟随系统语言'), desc: t('Detect browser language automatically', '根据浏览器首选语言自动适配') },
+            { key: 'zh', title: '简体中文 (Simplified Chinese)', desc: '中文界面' },
+            { key: 'en', title: 'English (United States)', desc: 'English UI interface' }
+          ].map(opt => {
+            const isSelected = currentLang === opt.key;
+            return (
+              <AppleRow
+                key={opt.key}
+                label={opt.title}
+                sublabel={opt.desc}
+                rightContent={isSelected ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--apple-blue)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : null}
+                onClick={() => onLanguageChange(opt.key)}
+              />
+            );
+          })}
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
+
+  /* Subpage: Appearance */
+  const themeSubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('Appearance Modes', '外观模式切换')}>
+        <AppleCard>
+          {[
+            { key: 'auto', title: t('Follow System (Auto)', '跟随系统外观 (推荐)'), desc: t('Sync automatically with OS dark/light mode', '自动跟随 macOS/iOS 系统深浅色外观切换') },
+            { key: 'dark', title: t('Dark Mode (Apple HIG)', '深色模式 (Apple Dark Mode)'), desc: t('Pure black OLED background with translucent frosted glass', '纯黑 OLED 背景与毛玻璃高对比度渲染') },
+            { key: 'light', title: t('Light Mode', '浅色模式 (Apple Light Mode)'), desc: t('Classic crisp iOS light gray canvas', '高对比度清爽浅灰底色') }
+          ].map(opt => {
+            const isSelected = currentTheme === opt.key;
+            return (
+              <AppleRow
+                key={opt.key}
+                label={opt.title}
+                sublabel={opt.desc}
+                rightContent={isSelected ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--apple-blue)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : null}
+                onClick={() => onThemeChange(opt.key)}
+              />
+            );
+          })}
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
+
+  /* Subpage: About */
+  const aboutSubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('About RSSHub Enhanced', '关于本控制台')}>
+        <AppleCard style={{ padding: '22px 18px', textAlign: 'center' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #fa586a 0%, #ff2d55 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 14px auto',
+            boxShadow: '0 8px 24px rgba(250, 88, 106, 0.35)'
+          }}>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="#ffffff">
+              <circle cx="6.18" cy="17.82" r="2.18"/>
+              <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/>
+            </svg>
+          </div>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--apple-text-primary)' }}>
+            RSSHub Enhanced
+          </h2>
+          <span style={{ fontSize: '13px', color: 'var(--apple-text-secondary)', display: 'block', marginBottom: '16px' }}>
+            {t('Production Portal Edition with AquaKit HIG Architecture', '基于 AquaKit Apple HIG 架构的企业级微服务全站门户')}
+          </span>
+          <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--apple-text-secondary)', textAlign: 'left', margin: 0 }}>
+            {t(
+              'RSSHub Enhanced integrates modern proxy balancing, automated CookieCloud decryptions, route diagnostics, and an Apple-grade multi-terminal responsive experience.',
+              'RSSHub Enhanced 深度整合了多节点轮询代理池、CookieCloud 自动解密回填、故障路由实时诊断与全终端自适应的原生 Apple HIG 交互体系。'
+            )}
+          </p>
+        </AppleCard>
+      </AppleGroup>
+
+      <AppleGroup header={t('Open Source & Upstream', '开源与上游生态')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="orange" icon={<SFSymbol name="globe" size={16} />} />}
+            label="RSSHub Upstream"
+            sublabel="https://github.com/DIYgod/RSSHub"
+            chevron={true}
+            href="https://github.com/DIYgod/RSSHub"
+          />
+          <AppleRow
+            badge={<AppleBadge color="blue" icon={<SFSymbol name="doc.text.fill" size={16} />} />}
+            label={t('Official Documentation', '官方路由文档')}
+            sublabel="https://docs.rsshub.app"
+            chevron={true}
+            href="https://docs.rsshub.app"
+          />
+          <AppleRow
+            badge={<AppleBadge color="purple" icon={<SFSymbol name="sparkles" size={16} />} />}
+            label="AquaKit Design System"
+            sublabel="Apple Human Interface Guidelines for Web"
+            value="v1.0.0"
+          />
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
+
+  /* Subpage: Privacy */
+  const privacySubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('Data Sovereignty & Privacy', '数据主权与隐私保护')}>
+        <AppleCard style={{ padding: '18px' }}>
+          <h4 style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 8px 0', color: 'var(--apple-text-primary)' }}>
+            {t('Local Sovereignty Statement', '数据完全自主可控')}
+          </h4>
+          <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--apple-text-secondary)', margin: '0 0 14px 0' }}>
+            {t(
+              'This RSSHub Enhanced instance operates in your private container cluster. All proxy nodes, CookieCloud encrypted credentials, API keys, and cache entries reside strictly on your server without telemetry.',
+              '本 RSSHub Enhanced 实例完全部署运行于您的私有 Docker 容器集群中。所有的代理节点、CookieCloud 加密凭据、API 密钥和路由数据均严格保存在您的私有服务器内，绝不向任何第三方上报遥测数据。'
+            )}
+          </p>
+
+          <h4 style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 8px 0', color: 'var(--apple-text-primary)' }}>
+            {t('Disclaimer', '免责声明')}
+          </h4>
+          <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--apple-text-secondary)', margin: 0 }}>
+            {t(
+              'Please respect the terms of service and robots.txt of target websites. Users bear full responsibility for route crawling frequency and compliance with local laws.',
+              '请严格遵守目标网站的授权条款与 robots 协议。用户需对订阅抓取频次及网络合规性承担全部责任。'
+            )}
+          </p>
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
+
+  return (
+    <AppleNavStack
+      activeSubpage={subTab}
+      onBack={() => onSelectSubTab(null)}
+      rootView={rootView}
+      subpages={{
+        lang: langSubpage,
+        theme: themeSubpage,
+        about: aboutSubpage,
+        privacy: privacySubpage
+      }}
+    />
   );
 }
 
-export default SettingsView;
+export default SettingsView;\n

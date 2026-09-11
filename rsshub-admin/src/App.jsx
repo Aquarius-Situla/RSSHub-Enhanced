@@ -1,3 +1,12 @@
+/* ============================================================================
+ * App.jsx — RSSHub Enhanced Main Application Shell
+ * ============================================================================
+ * COMMENTING STANDARDS:
+ * 1. Block comments only. Inline comments are strictly prohibited.
+ * 2. Section dividers use the === banner format.
+ * 3. All prose is written in English.
+ * ============================================================================ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import HomeView from './views/HomeView.jsx';
 import ProxyView from './views/ProxyView.jsx';
@@ -9,24 +18,24 @@ import SFSymbol from './components/SFSymbols.jsx';
 import { initDeviceLayout, isMobileLayout, syncStandaloneTabBar } from './utils/device-detect.js';
 
 export function App() {
-  // Navigation State: 4 core tabs and drill-down subTab
+  /* Navigation State: 4 core tabs and drill-down subTab */
   const [activeTab, setActiveTab] = useState('home');
   const [subTab, setSubTab] = useState(null);
 
-  // Sidebar search filter
+  /* Sidebar search filter */
   const [navSearch, setNavSearch] = useState('');
 
-  // Multi-terminal responsive detection using device fingerprinting
+  /* Multi-terminal responsive detection using device fingerprinting */
   const [isMobile, setIsMobile] = useState(() => {
     return isMobileLayout();
   });
 
-  // Animated Red Nav Indicator Refs & Logic
+  /* Animated Red Nav Indicator Refs & Logic */
   const topContainerRef = useRef(null);
   const indicatorRef = useRef(null);
   const prevIndicatorTopRef = useRef(null);
 
-  // Active key identifier for desktop sidebar (strictly 4 tabs)
+  /* Active key identifier for desktop sidebar (strictly 4 tabs) */
   const currentNavKey = activeTab;
 
   const moveRedIndicator = (toY, animate = true) => {
@@ -46,7 +55,7 @@ export function App() {
     indicator.style.opacity = '1';
     const isDown = toY > fromY;
 
-    // Apple Fluid Shorten-Glide-Elongate Physics (exact sys-memorial algorithm)
+    /* Apple Fluid Shorten-Glide-Elongate Physics (exact sys-memorial algorithm) */
     const keyframes = isDown ? [
       { top: `${fromY}px`, height: '16px', easing: 'cubic-bezier(0.32, 0.72, 0, 1)' },
       { top: `${fromY + 12}px`, height: '4px', easing: 'cubic-bezier(0.25, 1, 0.5, 1)' },
@@ -101,7 +110,7 @@ export function App() {
 
   useEffect(() => {
     document.body.classList.add('has-desktop-indicator');
-    // Initial direct positioning without cross-screen jump
+    /* Initial direct positioning without cross-screen jump */
     const timer1 = setTimeout(() => syncIndicatorPosition(false), 20);
     const timer2 = setTimeout(() => syncIndicatorPosition(false), 100);
     return () => {
@@ -110,7 +119,7 @@ export function App() {
     };
   }, []);
 
-  // Animate indicator when nav key changes
+  /* Animate indicator when nav key changes */
   useEffect(() => {
     syncIndicatorPosition(true);
   }, [currentNavKey, navSearch]);
@@ -145,7 +154,33 @@ export function App() {
     };
   }, []);
 
-  // Language & Internationalization
+  /* Browser History Sync for smooth Safari back gesture handling */
+  useEffect(() => {
+    const handlePopState = () => {
+      if (subTab) {
+        setSubTab(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [subTab]);
+
+  const handleSelectSubTab = (sub) => {
+    if (sub) {
+      window.history.pushState({ tab: activeTab, subTab: sub }, '');
+    }
+    setSubTab(sub);
+  };
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.subTab) {
+      window.history.back();
+    } else {
+      setSubTab(null);
+    }
+  };
+
+  /* Language & Internationalization */
   const [langConfig, setLangConfig] = useState(() => {
     return localStorage.getItem('rsshub_lang') || 'auto';
   });
@@ -166,7 +201,7 @@ export function App() {
     showToast(newLang === 'zh' ? '已切换至简体中文' : newLang === 'en' ? 'Switched to English' : '已设置为跟随系统语言');
   };
 
-  // Theme Management (Auto / Dark / Light)
+  /* Theme Management (Auto / Dark / Light) */
   const [themeConfig, setThemeConfig] = useState(() => {
     return localStorage.getItem('rsshub_theme') || 'auto';
   });
@@ -183,14 +218,13 @@ export function App() {
     }
   }, [themeConfig]);
 
-
   const handleThemeChange = (newTheme) => {
     setThemeConfig(newTheme);
     localStorage.setItem('rsshub_theme', newTheme);
     showToast(t(`Theme set to ${newTheme}`, `主题外观已更新为：${newTheme === 'dark' ? '深色模式' : newTheme === 'light' ? '浅色模式' : '跟随系统'}`));
   };
 
-  // Toast Notification State
+  /* Toast Notification State */
   const [toast, setToast] = useState({ show: false, message: '' });
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -199,7 +233,7 @@ export function App() {
     }, 2800);
   };
 
-  // Navigation Handlers & Title Resolvers
+  /* Navigation Handlers & Title Resolvers */
   const handleSelectTab = (tab) => {
     setActiveTab(tab);
     setSubTab(null);
@@ -224,16 +258,15 @@ export function App() {
       case 'bypass': return t('Bypass Rules', '直连分流规则');
       case 'sync': return 'CookieCloud';
       case 'keys': return t('Platform API Keys', '平台 API 凭据');
-      case 'lang': return t('Language & Region', '全局语言');
+      case 'lang': return t('Language & Region', '语言与地区');
       case 'theme': return t('Appearance & Theme', '外观与主题');
-      case 'accessKey': return t('Access Control Key', '访问控制密钥');
-      case 'sso': return t('SSO & Reverse Proxy', '反代与单点登录');
-      case 'system': return t('System Info', '系统信息');
+      case 'about': return t('About RSSHub Enhanced', '关于 RSSHub Enhanced');
+      case 'privacy': return t('Privacy & Disclaimer', '隐私政策与免责声明');
       default: return '';
     }
   };
 
-  // Apple Music style compact bottom profile feedback
+  /* Apple Music style compact bottom profile feedback */
   const [copiedProfile, setCopiedProfile] = useState(false);
   const handleCopyProfile = () => {
     const serverUrl = window.location.origin;
@@ -244,14 +277,14 @@ export function App() {
     setTimeout(() => setCopiedProfile(false), 1500);
   };
 
-  // Filter helper for sidebar search
+  /* Filter helper for sidebar search */
   const matchesSearch = (str) => {
     if (!navSearch.trim()) return true;
     return str.toLowerCase().includes(navSearch.trim().toLowerCase());
   };
 
   return (
-    <div className="app-viewport">
+    <div className="app-viewport" style={{ overscrollBehaviorX: 'none', WebkitOverscrollBehaviorX: 'none' }}>
       <Toast toast={toast} />
 
       {/* Apple-grade Fullscreen Frosted Glass Orientation Guard for Smartphones */}
@@ -265,7 +298,7 @@ export function App() {
           <button
             type="button"
             className="nav-back-link"
-            onClick={() => setSubTab(null)}
+            onClick={handleBack}
             aria-label={t('Back', '返回')}
           >
             <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -403,13 +436,13 @@ export function App() {
        * Main Content Area (Unified Portal Stage)
        * ==================================================================== */}
       <main className="main-stage">
-        <div className="stage-content-wrap">
+        <div className="stage-content-wrap" style={{ overscrollBehaviorX: 'none', WebkitOverscrollBehaviorX: 'none' }}>
           {/* Desktop Back Button (Apple Native Top Navigation Link) */}
           {subTab !== null && (
             <button
               type="button"
               className="top-back-btn"
-              onClick={() => setSubTab(null)}
+              onClick={handleBack}
               aria-label={t('Back', '返回')}
             >
               <svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -422,7 +455,7 @@ export function App() {
               t={t}
               showToast={showToast}
               subTab={subTab}
-              onSelectSubTab={setSubTab}
+              onSelectSubTab={handleSelectSubTab}
               isMobile={isMobile}
             />
           )}
@@ -431,7 +464,7 @@ export function App() {
               t={t}
               showToast={showToast}
               subTab={subTab}
-              onSelectSubTab={setSubTab}
+              onSelectSubTab={handleSelectSubTab}
               isMobile={isMobile}
             />
           )}
@@ -440,7 +473,7 @@ export function App() {
               t={t}
               showToast={showToast}
               subTab={subTab}
-              onSelectSubTab={setSubTab}
+              onSelectSubTab={handleSelectSubTab}
               isMobile={isMobile}
             />
           )}
@@ -449,7 +482,7 @@ export function App() {
               t={t}
               showToast={showToast}
               subTab={subTab}
-              onSelectSubTab={setSubTab}
+              onSelectSubTab={handleSelectSubTab}
               isMobile={isMobile}
               currentLang={langConfig}
               onLanguageChange={handleLanguageChange}
@@ -516,4 +549,4 @@ export function App() {
   );
 }
 
-export default App;
+export default App;\n

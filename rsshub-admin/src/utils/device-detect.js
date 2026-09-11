@@ -130,7 +130,7 @@ export function initDeviceLayout() {
     if (document.body) document.body.classList.add('device-iphone');
   }
 
-  // Detect iOS / PWA Standalone Mode
+  /* Detect iOS / PWA Standalone Mode */
   const isIOSStandalone = ('standalone' in window.navigator) && window.navigator.standalone;
   const isPWAStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
   if (isIOSStandalone || isPWAStandalone) {

@@ -1,5 +1,22 @@
+/* ============================================================================
+ * DataView.jsx — AquaKit CookieCloud Sync & Platform API Credentials
+ * ============================================================================
+ * COMMENTING STANDARDS:
+ * 1. Block comments only. Inline comments are strictly prohibited.
+ * 2. Section dividers use the === banner format.
+ * 3. All prose is written in English.
+ * ============================================================================ */
+
 import React, { useState, useEffect } from 'react';
 import SFSymbol from '../components/SFSymbols.jsx';
+import {
+  AppleGroup,
+  AppleCard,
+  AppleRow,
+  AppleBadge,
+  AppleButton,
+  AppleNavStack
+} from '../components/AquaKit.jsx';
 
 export function DataView({ t, showToast, subTab, onSelectSubTab }) {
   const [config, setConfig] = useState({
@@ -85,239 +102,185 @@ export function DataView({ t, showToast, subTab, onSelectSubTab }) {
     }
   };
 
-  if (subTab === 'sync') {
-    return (
-      <div className="fade-in">
-        <div>
-          <div className="settings-section">
-            <div className="settings-section-header">{t('CookieCloud Server Credentials', 'CookieCloud 账号与服务连接')}</div>
-            <div className="settings-card">
-              <div className="setting-item">
-                <div className="setting-main">
-                  <div className="ios-badge badge-blue">
-                    <SFSymbol name="network" size={16} />
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{t('Server Endpoint', '服务地址')}</span>
-                    <span className="setting-desc">{t('Self-hosted or official CookieCloud endpoint', 'CookieCloud 容器地址')}</span>
-                  </div>
-                </div>
-                <div className="setting-accessory" style={{ width: '220px' }}>
-                  <input
-                    type="text"
-                    className="ios-input"
-                    value={config.server || ''}
-                    onChange={e => setConfig({ ...config, server: e.target.value })}
-                    placeholder="http://cookiecloud:8088"
-                  />
-                </div>
-              </div>
+  /* Root View (2 Inset Grouped items) */
+  const rootView = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('Data & Credentials Sync', '数据与凭据同步 (DATA & CREDENTIALS)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="orange" icon={<SFSymbol name="cylinder.split.1x2.fill" size={17} />} />}
+            label="CookieCloud"
+            value={t('Auto Decrypt & Inject', '自动解密注入')}
+            chevron={true}
+            onClick={() => onSelectSubTab('sync')}
+          />
 
-              <div className="setting-item">
-                <div className="setting-main">
-                  <div className="ios-badge badge-purple">
-                    <SFSymbol name="key.fill" size={16} />
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">UUID</span>
-                    <span className="setting-desc">{t('CookieCloud browser extension user UUID', 'CookieCloud 扩展端生成的设备唯一识别码')}</span>
-                  </div>
-                </div>
-                <div className="setting-accessory" style={{ width: '220px' }}>
-                  <input
-                    type="text"
-                    className="ios-input"
-                    style={{ fontFamily: 'var(--sys-mono)', fontSize: '13px' }}
-                    value={config.uuid || ''}
-                    onChange={e => setConfig({ ...config, uuid: e.target.value })}
-                    placeholder="e.g. 550e8400-e29b-41d4-..."
-                  />
-                </div>
-              </div>
+          <AppleRow
+            badge={<AppleBadge color="purple" icon={<SFSymbol name="key.fill" size={17} />} />}
+            label={t('Platform API Keys', '平台 API 凭据')}
+            value={t('Multi-Platform Tokens', '多平台授权')}
+            chevron={true}
+            onClick={() => onSelectSubTab('keys')}
+          />
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
 
-              <div className="setting-item">
-                <div className="setting-main">
-                  <div className="ios-badge badge-teal">
-                    <SFSymbol name="lock.fill" size={16} />
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{t('End-to-End Password', '端对端加密密码')}</span>
-                    <span className="setting-desc">{t('AES decryption password for synced cookies', '用于本地运行 decrypt.py 解密 Cookie 数据')}</span>
-                  </div>
-                </div>
-                <div className="setting-accessory" style={{ width: '220px' }}>
-                  <input
-                    type="password"
-                    className="ios-input"
-                    value={config.password || ''}
-                    onChange={e => setConfig({ ...config, password: e.target.value })}
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-            </div>
+  /* Subpage: CookieCloud */
+  const syncSubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('CookieCloud Server Credentials', 'CookieCloud 账号与服务连接 (CREDENTIALS)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="blue" icon={<SFSymbol name="network" size={16} />} />}
+            label={t('Server Endpoint', '服务地址')}
+            sublabel={t('CookieCloud server URL', 'CookieCloud 部署服务器地址')}
+            rightContent={
+              <input
+                type="text"
+                className="ios-input"
+                style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '13px', width: '220px' }}
+                value={config.server || ''}
+                onChange={e => setConfig({ ...config, server: e.target.value })}
+                placeholder="https://cookiecloud.example.com"
+              />
+            }
+          />
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-              <button
-                type="button"
-                className="ios-btn secondary"
-                onClick={handleSync}
-                disabled={syncing}
-              >
-                {syncing ? t('Syncing...', '同步中...') : t('Force Sync Now', '立即执行解密同步')}
-              </button>
-              <button
-                type="button"
-                className="ios-btn primary"
-                onClick={handleSaveCookieCloud}
-                disabled={saving}
-              >
-                {saving ? t('Saving...', '保存中...') : t('Save Credentials', '保存配置')}
-              </button>
-            </div>
-          </div>
+          <AppleRow
+            badge={<AppleBadge color="teal" icon={<SFSymbol name="person.crop.circle" size={16} />} />}
+            label="UUID"
+            sublabel={t('User Identification Key', '用户唯一识别码')}
+            rightContent={
+              <input
+                type="text"
+                className="ios-input"
+                style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '13px', width: '220px' }}
+                value={config.uuid || ''}
+                onChange={e => setConfig({ ...config, uuid: e.target.value })}
+                placeholder="uuid..."
+              />
+            }
+          />
 
-          {/* Decrypt & Sync Console Viewer */}
-          <div className="settings-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', paddingLeft: '14px', paddingRight: '14px' }}>
-              <div className="settings-section-header" style={{ margin: 0, padding: 0 }}>
-                {t('Console Output (update_cookies.log)', '解密执行控制台日志 (update_cookies.log)')}
-              </div>
-              <button
-                type="button"
-                className="ios-btn secondary"
-                style={{ padding: '3px 8px', fontSize: '11.5px' }}
-                onClick={fetchLogs}
-              >
-                {t('Refresh Log', '刷新日志')}
-              </button>
-            </div>
-
-            <div className="settings-card" style={{ padding: '14px', background: 'rgba(20, 20, 22, 0.95)' }}>
-              <pre
-                style={{
-                  margin: 0,
-                  fontFamily: 'var(--sys-mono)',
-                  fontSize: '12px',
-                  lineHeight: '1.5',
-                  color: 'rgba(255, 255, 255, 0.85)',
-                  maxHeight: '220px',
-                  overflowY: 'auto',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-all'
-                }}
-              >
-                {logs || t('# No logs recorded yet or log file empty.', '# 暂无日志输出或日志文件为空。')}
-              </pre>
-            </div>
-          </div>
+          <AppleRow
+            badge={<AppleBadge color="indigo" icon={<SFSymbol name="lock.fill" size={16} />} />}
+            label={t('End-to-End Encryption Password', '端到端加密口令')}
+            sublabel={t('Used for decrypt.py local AES decryption', '用于解密脚本本地恢复 Cookie')}
+            rightContent={
+              <input
+                type="password"
+                className="ios-input"
+                style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '13px', width: '220px' }}
+                value={config.password || ''}
+                onChange={e => setConfig({ ...config, password: e.target.value })}
+                placeholder="••••••••"
+              />
+            }
+          />
+        </AppleCard>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+          <AppleButton
+            variant="secondary"
+            size="md"
+            onClick={handleSaveCookieCloud}
+            disabled={saving}
+          >
+            {saving ? t('Saving...', '保存中...') : t('Save Credentials', '保存凭据')}
+          </AppleButton>
+          <AppleButton
+            variant="primary"
+            size="md"
+            onClick={handleSync}
+            disabled={syncing}
+          >
+            {syncing ? t('Syncing...', '解密同步中...') : t('Sync Now', '立即同步解密')}
+          </AppleButton>
         </div>
-      </div>
-    );
-  }
+      </AppleGroup>
 
-  if (subTab === 'keys') {
-    return (
-      <div className="fade-in">
-        <div className="settings-section">
-          <div className="settings-section-header">{t('Decoupled Platform API Keys', '独立第三方平台凭据')}</div>
-          <div className="settings-card">
-            <div className="setting-item">
-              <div className="setting-main">
-                <div className="ios-badge badge-blue">
-                  <SFSymbol name="safari.fill" size={16} />
-                </div>
-                <div className="setting-info">
-                  <span className="setting-title">{t('Bilibili VIP UID (BILIBILIUID)', 'B站大会员 UID')}</span>
-                  <span className="setting-desc">{t('Used for 1080P+ high-resolution video streams', '用于 Bilibili 订阅获取 1080P 高清画质')}</span>
-                </div>
-              </div>
-              <div className="setting-accessory" style={{ width: '220px' }}>
-                <input
-                  type="text"
-                  className="ios-input"
-                  style={{ fontFamily: 'var(--sys-mono)' }}
-                  value={config.bilibiliUid || ''}
-                  onChange={e => setConfig({ ...config, bilibiliUid: e.target.value })}
-                  placeholder="e.g. 2267573"
-                />
-              </div>
-            </div>
+      <AppleGroup header={t('Decryption Execution Logs', '解密执行日志 (DECRYPT LOGS)')}>
+        <AppleCard style={{ padding: '14px' }}>
+          <pre style={{
+            margin: 0,
+            fontFamily: 'var(--apple-font-mono)',
+            fontSize: '12px',
+            color: 'var(--apple-text-secondary)',
+            maxHeight: '200px',
+            overflowY: 'auto',
+            whiteSpace: 'pre-wrap',
+            lineHeight: 1.45
+          }}>
+            {logs || t('No logs yet. Click "Sync Now" to run decrypt script.', '暂无解密日志。请点击上方「立即同步解密」执行解密。')}
+          </pre>
+        </AppleCard>
+      </AppleGroup>
+    </div>
+  );
 
-            <div className="setting-item">
-              <div className="setting-main">
-                <div className="ios-badge badge-red">
-                  <SFSymbol name="key.fill" size={16} />
-                </div>
-                <div className="setting-info">
-                  <span className="setting-title">{t('YouTube Data API Key (YOUTUBE_KEY)', 'YouTube Data API 密钥')}</span>
-                  <span className="setting-desc">{t('Official Google Cloud Console Data API v3 key', '用于 YouTube 频道与视频列表稳定订阅')}</span>
-                </div>
-              </div>
-              <div className="setting-accessory" style={{ width: '220px' }}>
-                <input
-                  type="text"
-                  className="ios-input"
-                  style={{ fontFamily: 'var(--sys-mono)', fontSize: '12.5px' }}
-                  value={config.youtubeKey || ''}
-                  onChange={e => setConfig({ ...config, youtubeKey: e.target.value })}
-                  placeholder="AIzaSy..."
-                />
-              </div>
-            </div>
-          </div>
+  /* Subpage: Platform API Keys */
+  const keysSubpage = (
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      <AppleGroup header={t('Platform API Keys', '第三方平台授权凭据 (PLATFORM API KEYS)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="blue" icon={<SFSymbol name="play.circle.fill" size={16} />} />}
+            label={t('Bilibili UID (BILIBILI_COOKIE_UID)', '哔哩哔哩 用户 UID')}
+            sublabel={t('Target account UID for dynamic feed fetch', '用于抓取特定账号动态与专属关注流')}
+            rightContent={
+              <input
+                type="text"
+                className="ios-input"
+                style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '13px', width: '220px' }}
+                value={config.bilibiliUid || ''}
+                onChange={e => setConfig({ ...config, bilibiliUid: e.target.value })}
+                placeholder="2267573"
+              />
+            }
+          />
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-            <button
-              type="button"
-              className="ios-btn primary"
-              onClick={handleSaveKeys}
-              disabled={saving}
-            >
-              {saving ? t('Saving...', '保存中...') : t('Save API Keys', '保存平台凭据')}
-            </button>
-          </div>
+          <AppleRow
+            badge={<AppleBadge color="red" icon={<SFSymbol name="key.fill" size={16} />} />}
+            label={t('YouTube Data API Key (YOUTUBE_KEY)', 'YouTube Data API 密钥')}
+            sublabel={t('Official Google Cloud Console Data API v3 key', '用于 YouTube 频道与视频列表稳定订阅')}
+            rightContent={
+              <input
+                type="text"
+                className="ios-input"
+                style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '13px', width: '220px' }}
+                value={config.youtubeKey || ''}
+                onChange={e => setConfig({ ...config, youtubeKey: e.target.value })}
+                placeholder="AIzaSy..."
+              />
+            }
+          />
+        </AppleCard>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+          <AppleButton
+            variant="primary"
+            size="md"
+            onClick={handleSaveKeys}
+            disabled={saving}
+          >
+            {saving ? t('Saving...', '保存中...') : t('Save API Keys', '保存平台凭据')}
+          </AppleButton>
         </div>
-      </div>
-    );
-  }
+      </AppleGroup>
+    </div>
+  );
 
   return (
-    <div className="fade-in">
-      <div className="ios-group-container">
-        <div className="ios-section-header">
-          {t('Data & Credentials Sync', '数据与凭据同步 (DATA & CREDENTIALS)')}
-        </div>
-        <div className="ios-card">
-          <div className="ios-row has-badge" onClick={() => onSelectSubTab('sync')}>
-            <div className="ios-row-title">
-              <div className="ios-badge badge-orange">
-                <SFSymbol name="cylinder.split.1x2.fill" size={17} />
-              </div>
-              <span>CookieCloud</span>
-            </div>
-            <div className="ios-row-accessory">
-              <span className="ios-row-value">{t('Auto Decrypt & Inject', '自动解密注入')}</span>
-              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-            </div>
-          </div>
-
-          <div className="ios-row has-badge" onClick={() => onSelectSubTab('keys')}>
-            <div className="ios-row-title">
-              <div className="ios-badge badge-purple">
-                <SFSymbol name="key.fill" size={17} />
-              </div>
-              <span>{t('Platform API Keys', '平台 API 凭据')}</span>
-            </div>
-            <div className="ios-row-accessory">
-              <span className="ios-row-value">{t('Multi-Platform Tokens', '多平台授权')}</span>
-              <svg className="ios-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AppleNavStack
+      activeSubpage={subTab}
+      onBack={() => onSelectSubTab(null)}
+      rootView={rootView}
+      subpages={{
+        sync: syncSubpage,
+        keys: keysSubpage
+      }}
+    />
   );
 }
 
-export default DataView;
+export default DataView;\n

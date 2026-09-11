@@ -1,5 +1,24 @@
+/* ============================================================================
+ * OverviewSubView.jsx — AquaKit Health Matrix & DevOps Operations
+ * ============================================================================
+ * COMMENTING STANDARDS:
+ * 1. Block comments only. Inline comments are strictly prohibited.
+ * 2. Section dividers use the === banner format.
+ * 3. All prose is written in English.
+ * ============================================================================ */
+
 import React, { useState, useEffect } from 'react';
 import SFSymbol from '../../components/SFSymbols.jsx';
+import {
+  AppleHealthGrid,
+  AppleHealthCard,
+  AppleGroup,
+  AppleCard,
+  AppleRow,
+  AppleBadge,
+  AppleButton,
+  AppleStatusPill
+} from '../../components/AquaKit.jsx';
 
 export function OverviewSubView({ t, showToast }) {
   const [statusData, setStatusData] = useState(null);
@@ -72,153 +91,168 @@ export function OverviewSubView({ t, showToast }) {
   };
 
   return (
-    <div className="fade-in">
-      {/* Top Statistics Matrix */}
-      <div className="stats-grid">
-        <div className="stats-card">
-          <span className="stat-label">{t('Proxy Pool', '代理节点池')}</span>
-          <span className="stat-value">{statusData ? statusData.nodeCount : '-'}</span>
-          <span className="stat-subtext">{t('Active round-robin nodes', '轮询负载均衡节点数')}</span>
-        </div>
+    <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+      {/* ====================================================================
+       * 1. Responsive Apple Health Metrics Grid (1-col mobile, 2-col desktop)
+       * ==================================================================== */}
+      <div style={{ marginBottom: '20px' }}>
+        <AppleHealthGrid>
+          <AppleHealthCard
+            category={t('Proxy Pool', '代理节点池')}
+            categoryColor="cyan"
+            icon={<SFSymbol name="network" size={16} />}
+            time={t('Round-Robin', '轮询负载')}
+            statLabel={t('Active Nodes', '活跃节点')}
+            heroNumber={statusData ? String(statusData.nodeCount) : '-'}
+            heroUnit={t('Nodes', '个')}
+            bars={[
+              { height: 16 },
+              { height: 26 },
+              { height: 22, active: true },
+              { height: 32, active: true }
+            ]}
+            chevron={false}
+          />
 
-        <div className="stats-card">
-          <span className="stat-label">{t('Bypass Rules', '直连分流规则')}</span>
-          <span className="stat-value">{statusData ? statusData.bypassCount : '-'}</span>
-          <span className="stat-subtext">{t('bypass.txt direct domains', '行直连白名单规则')}</span>
-        </div>
+          <AppleHealthCard
+            category={t('Bypass Rules', '直连分流')}
+            categoryColor="purple"
+            icon={<SFSymbol name="shield.fill" size={16} />}
+            time="bypass.txt"
+            statLabel={t('Direct Domains', '白名单规则')}
+            heroNumber={statusData ? String(statusData.bypassCount) : '-'}
+            heroUnit={t('Rules', '条')}
+            bars={[
+              { height: 14 },
+              { height: 20 },
+              { height: 26 },
+              { height: 32, active: true }
+            ]}
+            chevron={false}
+          />
 
-        <div className="stats-card">
-          <span className="stat-label">{t('Cookie Sync', 'Cookie 同步状态')}</span>
-          <span className="stat-value" style={{ fontSize: '18px', marginTop: '6px' }}>
-            {statusData && statusData.lastSyncTime
-              ? new Date(statusData.lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-              : t('No record', '暂无记录')}
-          </span>
-          <span className="stat-subtext">
-            {statusData && statusData.lastSyncTime
-              ? new Date(statusData.lastSyncTime).toLocaleDateString()
-              : t('Never synced', '未执行过解密')}
-          </span>
-        </div>
+          <AppleHealthCard
+            category="CookieCloud"
+            categoryColor="orange"
+            icon={<SFSymbol name="cylinder.split.1x2.fill" size={16} />}
+            time={statusData && statusData.lastSyncTime ? new Date(statusData.lastSyncTime).toLocaleDateString() : t('Never', '未执行')}
+            statLabel={t('Last Decrypted', '最后解密')}
+            heroNumber={statusData && statusData.lastSyncTime ? new Date(statusData.lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+            heroUnit=""
+            bars={[
+              { height: 18 },
+              { height: 32, active: true },
+              { height: 16 },
+              { height: 28, active: true }
+            ]}
+            chevron={false}
+          />
 
-        <div className="stats-card">
-          <span className="stat-label">{t('Instance Health', '实例健康度')}</span>
-          <span className="stat-value" style={{ color: 'var(--green)' }}>100%</span>
-          <span className="stat-subtext">{t('All Core Services Active', '微服务链路正常运行')}</span>
-        </div>
+          <AppleHealthCard
+            category={t('Instance Health', '实例健康度')}
+            categoryColor="green"
+            icon={<SFSymbol name="heart.fill" size={16} />}
+            time={t('All Microservices', '全微服务集群')}
+            statLabel={t('System Uptime', '健康评分')}
+            heroNumber="100"
+            heroUnit="%"
+            bars={[
+              { height: 24, active: true },
+              { height: 28, active: true },
+              { height: 32, active: true },
+              { height: 32, active: true }
+            ]}
+            chevron={false}
+          />
+        </AppleHealthGrid>
       </div>
 
-      {/* Quick Operation Inset Card */}
-      <div className="settings-section">
-        <div className="settings-section-header">{t('Quick Actions', '快捷运维操作')}</div>
-        <div className="settings-card">
-          <div className="setting-item">
-            <div className="setting-main">
-              <div className="ios-badge badge-blue">
-                <SFSymbol name="arrow.clockwise" size={16} />
-              </div>
-              <div className="setting-info">
-                <span className="setting-title">{t('Restart RSSHub Core', '重启 RSSHub 核心')}</span>
-                <span className="setting-desc">{t('Reload environment variables and route cache', '重新载入 .env 配置与路由缓存')}</span>
-              </div>
-            </div>
-            <div className="setting-accessory">
-              <button
-                type="button"
-                className="ios-btn secondary"
+      {/* ====================================================================
+       * 2. Quick Operations Card (AppleGroup & AppleCard)
+       * ==================================================================== */}
+      <AppleGroup header={t('Quick DevOps Actions', '快捷运维操作 (QUICK ACTIONS)')}>
+        <AppleCard>
+          <AppleRow
+            badge={<AppleBadge color="blue" icon={<SFSymbol name="arrow.clockwise" size={16} />} />}
+            label={t('Restart RSSHub Core', '重启 RSSHub 核心')}
+            sublabel={t('Reload environment variables and route cache', '重新载入 .env 配置与路由缓存')}
+            rightContent={
+              <AppleButton
+                variant="secondary"
+                size="sm"
                 disabled={actionLoading === 'rsshub'}
                 onClick={handleRestartRsshub}
               >
                 {actionLoading === 'rsshub' ? t('Restarting...', '重启中...') : t('Restart', '立即重启')}
-              </button>
-            </div>
-          </div>
+              </AppleButton>
+            }
+          />
 
-          <div className="setting-item">
-            <div className="setting-main">
-              <div className="ios-badge badge-teal">
-                <SFSymbol name="network" size={16} />
-              </div>
-              <div className="setting-info">
-                <span className="setting-title">{t('Restart Gost Proxy', '重启 Gost 代理池')}</span>
-                <span className="setting-desc">{t('Apply latest node configurations and bypass rules', '重载代理转发链与 bypass 分流配置')}</span>
-              </div>
-            </div>
-            <div className="setting-accessory">
-              <button
-                type="button"
-                className="ios-btn secondary"
+          <AppleRow
+            badge={<AppleBadge color="teal" icon={<SFSymbol name="network" size={16} />} />}
+            label={t('Restart Gost Proxy', '重启 Gost 代理池')}
+            sublabel={t('Apply latest node configurations and bypass rules', '重载代理转发链与 bypass 分流配置')}
+            rightContent={
+              <AppleButton
+                variant="secondary"
+                size="sm"
                 disabled={actionLoading === 'gost'}
                 onClick={handleRestartGost}
               >
                 {actionLoading === 'gost' ? t('Restarting...', '重启中...') : t('Restart', '立即重启')}
-              </button>
-            </div>
-          </div>
+              </AppleButton>
+            }
+          />
 
-          <div className="setting-item">
-            <div className="setting-main">
-              <div className="ios-badge badge-orange">
-                <SFSymbol name="cylinder.split.1x2.fill" size={16} />
-              </div>
-              <div className="setting-info">
-                <span className="setting-title">{t('Force Sync CookieCloud', '强制同步 CookieCloud')}</span>
-                <span className="setting-desc">{t('Run decrypt.py and inject cookies to rsshub.env', '执行解密脚本并将 Cookie 写入环境变量')}</span>
-              </div>
-            </div>
-            <div className="setting-accessory">
-              <button
-                type="button"
-                className="ios-btn primary"
+          <AppleRow
+            badge={<AppleBadge color="orange" icon={<SFSymbol name="cylinder.split.1x2.fill" size={16} />} />}
+            label={t('Force Sync CookieCloud', '强制同步 CookieCloud')}
+            sublabel={t('Run decrypt.py and inject cookies to rsshub.env', '执行解密脚本并将 Cookie 写入环境变量')}
+            rightContent={
+              <AppleButton
+                variant="primary"
+                size="sm"
                 disabled={actionLoading === 'cookie'}
                 onClick={handleSyncCookies}
               >
                 {actionLoading === 'cookie' ? t('Syncing...', '同步中...') : t('Force Sync', '立即同步')}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+              </AppleButton>
+            }
+          />
+        </AppleCard>
+      </AppleGroup>
 
-      {/* Container Services Health Matrix */}
-      <div className="settings-section">
-        <div className="settings-section-header">{t('Microservices Matrix', '微服务容器矩阵')}</div>
-        <div className="settings-card">
+      {/* ====================================================================
+       * 3. Microservices Matrix (AppleGroup & AppleStatusPill)
+       * ==================================================================== */}
+      <AppleGroup header={t('Microservices Matrix', '微服务容器矩阵 (MICROSERVICES MATRIX)')}>
+        <AppleCard>
           {statusData && statusData.containers ? (
             statusData.containers.map((c, i) => (
-              <div key={i} className="setting-item">
-                <div className="setting-main">
-                  <div className={`ios-badge ${c.state === 'running' ? 'badge-green' : 'badge-red'}`}>
-                    <SFSymbol name="server.rack" size={16} />
-                  </div>
-                  <div className="setting-info">
-                    <span className="setting-title">{c.label}</span>
-                    <span className="setting-desc">{c.status}</span>
-                  </div>
-                </div>
-                <div className="setting-accessory">
-                  <span className={`container-badge ${c.state === 'running' ? 'badge-running' : 'badge-stopped'}`}>
-                    <span
-                      style={{
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        backgroundColor: c.state === 'running' ? 'var(--green)' : 'var(--red)',
-                        display: 'inline-block'
-                      }}
-                    ></span>
+              <AppleRow
+                key={i}
+                badge={
+                  <AppleBadge
+                    color={c.state === 'running' ? 'green' : 'red'}
+                    icon={<SFSymbol name="server.rack" size={16} />}
+                  />
+                }
+                label={c.label}
+                sublabel={c.status}
+                rightContent={
+                  <AppleStatusPill status={c.state === 'running' ? 'success' : 'error'}>
                     {c.state === 'running' ? t('Running', '运行中') : t('Inactive', '未运行')}
-                  </span>
-                </div>
-              </div>
+                  </AppleStatusPill>
+                }
+              />
             ))
           ) : (
-            <div className="setting-item" style={{ color: 'var(--text-secondary)' }}>
-              {t('Loading container states...', '正在检测服务容器状态...')}
+            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--apple-text-secondary)', fontSize: '13px' }}>
+              {t('Detecting container statuses...', '正在检测微服务容器状态...')}
             </div>
           )}
-        </div>
-      </div>
+        </AppleCard>
+      </AppleGroup>
     </div>
   );
 }
