@@ -1,5 +1,5 @@
 /* ============================================================================
- * telemetryCache.js — Global SWR Telemetry & Status Cache
+ * telemetryCache.js -- Global SWR Telemetry & Status Cache
  * ============================================================================
  * COMMENTING STANDARDS:
  * 1. Block comments only. Inline comments are strictly prohibited.
@@ -7,13 +7,31 @@
  * 3. All prose is written in English.
  * ============================================================================ */
 
-/* Global in-memory cache singleton */
+const STORAGE_KEY = 'rsshub_telemetry_cache_v1';
+
+/* Safely load persisted telemetry from localStorage */
+const loadPersistedCache = () => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    /* Ignore storage parsing errors */
+  }
+  return {};
+};
+
+const persisted = loadPersistedCache();
+
+/* Global in-memory cache singleton initialized with persisted values */
 const cacheStore = {
-  systemStatus: null,
-  proxyNodes: null,
-  bypassText: null,
-  routeErrors: null,
-  cookiecloud: null
+  systemStatus: persisted.systemStatus || null,
+  proxyNodes: persisted.proxyNodes || null,
+  bypassText: persisted.bypassText !== undefined ? persisted.bypassText : null,
+  routeErrors: persisted.routeErrors || null,
+  cookiecloud: persisted.cookiecloud || null
 };
 
 /* Listeners for reactive subscribers */
@@ -26,6 +44,14 @@ export const telemetryCache = {
 
   set(key, value) {
     cacheStore[key] = value;
+    /* Persist to localStorage for zero-flicker reload */
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheStore));
+      } catch (e) {
+        /* Ignore quota errors */
+      }
+    }
     listeners.forEach(fn => {
       try {
         fn(key, value);
@@ -50,10 +76,10 @@ export const telemetryCache = {
         fetch('api/routes/errors').then(r => r.ok ? r.json() : null).catch(() => null)
       ]);
 
-      if (statusRes) cacheStore.systemStatus = statusRes;
-      if (nodesRes) cacheStore.proxyNodes = nodesRes;
-      if (bypassRes && bypassRes.content) cacheStore.bypassText = bypassRes.content;
-      if (errorsRes && errorsRes.errors) cacheStore.routeErrors = errorsRes.errors;
+      if (statusRes) telemetryCache.set('systemStatus', statusRes);
+      if (nodesRes) telemetryCache.set('proxyNodes', nodesRes);
+      if (bypassRes && bypassRes.content !== undefined) telemetryCache.set('bypassText', bypassRes.content);
+      if (errorsRes && errorsRes.errors) telemetryCache.set('routeErrors', errorsRes.errors);
     } catch (e) {
       /* Warm-up silent fail */
     }

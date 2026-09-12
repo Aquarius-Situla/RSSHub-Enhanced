@@ -336,9 +336,6 @@ export function AppleNavStack({
         } else if (!activeSubpage && prev) {
             /* Exiting subpage: start pop animation */
             setPhase('popping');
-            if (typeof window !== 'undefined') {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-            }
             const timer = setTimeout(() => {
                 setRenderedSubpage(null);
                 setPhase('root');

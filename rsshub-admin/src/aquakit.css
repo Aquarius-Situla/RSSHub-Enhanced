@@ -38,6 +38,7 @@
 
     /* Surface & Background (Light Mode) */
     --apple-bg-stage: #f2f2f7;
+    --apple-bg-grouped: #f2f2f7;
     --apple-bg-sidebar: rgba(242, 242, 247, 0.88);
     --apple-bg-card: #ffffff;
     --apple-bg-card-hover: rgba(0, 0, 0, 0.03);
@@ -102,6 +103,7 @@
 
         /* Surface & Background (Pure Black OLED Depth) */
         --apple-bg-stage: #111111;
+        --apple-bg-grouped: #1c1c1e;
         --apple-bg-sidebar: rgba(22, 22, 24, 0.88);
         --apple-bg-card: rgba(36, 36, 40, 0.82);
         --apple-bg-card-hover: rgba(255, 255, 255, 0.05);
@@ -2066,25 +2068,21 @@ html.apple-theme-dark .apple-skeleton {
 @keyframes appleParentPush {
   0% {
     transform: translate3d(0, 0, 0);
-    filter: brightness(1);
     opacity: 1;
   }
   100% {
-    transform: translate3d(-28%, 0, 0);
-    filter: brightness(0.72);
-    opacity: 0.88;
+    transform: translate3d(-24%, 0, 0);
+    opacity: 0.94;
   }
 }
 
 @keyframes appleParentPop {
   0% {
-    transform: translate3d(-28%, 0, 0);
-    filter: brightness(0.72);
-    opacity: 0.88;
+    transform: translate3d(-24%, 0, 0);
+    opacity: 0.94;
   }
   100% {
     transform: translate3d(0, 0, 0);
-    filter: brightness(1);
     opacity: 1;
   }
 }
@@ -2132,7 +2130,15 @@ html.apple-theme-dark .apple-skeleton {
 }
 
 .apple-nav-view.is-settled-hidden {
-  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
 }
 
 .apple-subpage.is-pushing {
@@ -2142,7 +2148,7 @@ html.apple-theme-dark .apple-skeleton {
   left: 0 !important;
   width: 100% !important;
   z-index: 50 !important;
-  box-shadow: -16px 0 36px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08) !important;
   animation: appleSubpagePush 0.32s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
   pointer-events: none !important;
   will-change: transform, opacity;
@@ -2155,10 +2161,15 @@ html.apple-theme-dark .apple-skeleton {
   left: 0 !important;
   width: 100% !important;
   z-index: 50 !important;
-  box-shadow: -16px 0 36px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08) !important;
   animation: appleSubpagePop 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards !important;
   pointer-events: none !important;
   will-change: transform, opacity;
+}
+
+html.apple-theme-dark .apple-subpage.is-pushing,
+html.apple-theme-dark .apple-subpage.is-popping {
+  box-shadow: -16px 0 36px rgba(0, 0, 0, 0.45) !important;
 }
 
 .apple-subpage.is-settled {
@@ -2674,11 +2685,11 @@ html.device-mobile .apple-health-card:active {
   transform: none !important;
 }
 
-/* Ensure health card retains solid card background on mobile touch */
+/* Ensure health card retains solid card background and stable shadow on mobile touch */
 html.device-mobile .apple-health-card:hover {
   background: var(--apple-bg-card) !important;
   transform: none !important;
-  box-shadow: none !important;
+  box-shadow: var(--apple-card-shadow) !important;
 }
 
 html.device-mobile .apple-row:hover,
@@ -2698,7 +2709,7 @@ html.device-mobile .apple-vpn-action-row:active {
 html.device-mobile .category-card:hover,
 html.device-mobile .category-card:active {
   transform: none !important;
-  box-shadow: none !important;
+  box-shadow: var(--apple-card-shadow) !important;
 }
 
 /* ============================================================================

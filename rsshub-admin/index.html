@@ -12,15 +12,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RSSHub" />
 
-    <!-- Zero-FOUC Early Fingerprint & Standalone Detection (AquaKit HIG Standard) -->
+    <!-- Zero-FOUC Early Fingerprint, Theme & Standalone Detection (AquaKit HIG Standard) -->
     <script>
       (function(){
+        var d=document.documentElement;
+        try {
+          var savedTheme = localStorage.getItem('rsshub_theme') || 'auto';
+          var isDark = savedTheme === 'dark' || (savedTheme === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var mode = isDark ? 'dark' : 'light';
+          d.setAttribute('data-theme', mode);
+          d.classList.add('apple-theme-' + mode);
+        } catch(e) {}
         var u=navigator.userAgent||"",p=navigator.platform||"";
         var i=/iPad/i.test(u)||/iPad/i.test(p)||((p==="MacIntel"||u.indexOf("Macintosh")!==-1)&&navigator.maxTouchPoints>1);
         var ph=/iPhone|iPod/i.test(u)||p==="iPhone"||p==="iPod"||/Android.*Mobile/i.test(u);
         var t=i||/Android(?!.*Mobile)/i.test(u);
         var m=ph||t||window.innerWidth<=768;
-        var d=document.documentElement;
         if(m){d.classList.add("device-mobile");if(t)d.classList.add("device-tablet");if(ph)d.classList.add("device-phone");if(i)d.classList.add("device-ipad");}else{d.classList.add("device-desktop");}
         if(('standalone' in navigator && navigator.standalone) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)){d.classList.add('is-standalone');}
       })();
