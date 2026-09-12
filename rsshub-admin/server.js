@@ -16,6 +16,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
+/* Support requests with or without /admin prefix */
+app.use((req, res, next) => {
+    if (req.url.startsWith('/admin/api/')) {
+        req.url = req.url.replace('/admin', '');
+    }
+    next();
+});
+
 // Support experimental local test route if present
 const TSINGHUA_TEST = path.join(__dirname, 'tsinghua_test.js');
 if (existsSync(TSINGHUA_TEST)) {
@@ -648,8 +656,9 @@ app.get('/api/routes/test', async (req, res) => {
     }
 });
 
-// Serve frontend in production
+/* Serve frontend in production */
 if (process.env.NODE_ENV === 'production') {
+    app.use('/admin', express.static(path.join(__dirname, 'dist')));
     app.use(express.static(path.join(__dirname, 'dist')));
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
