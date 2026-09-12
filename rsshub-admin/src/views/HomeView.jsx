@@ -20,7 +20,7 @@ import {
 } from '../components/AquaKit.jsx';
 import telemetryCache from '../utils/telemetryCache.js';
 
-export function HomeView({ t, showToast, subTab, onSelectSubTab, onSelectTab }) {
+export function HomeView({ t, showToast, subTab, onSelectSubTab, onSelectTab, onBack, isMobile }) {
   const [statusData, setStatusData] = useState(() => telemetryCache.get('systemStatus'));
   const [errorCount, setErrorCount] = useState(() => {
     const cachedErrors = telemetryCache.get('routeErrors');
