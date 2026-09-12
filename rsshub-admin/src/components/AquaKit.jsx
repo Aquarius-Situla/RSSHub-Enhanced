@@ -446,6 +446,122 @@ export function AppleNavStack({
     );
 }
 
+/* ============================================================================
+ * 8. Apple Health Detail View Components (1:1 iOS Health App)
+ * ============================================================================ */
+export function AppleHealthDetailHero({
+    label,
+    value,
+    unit,
+    sublabel,
+    className = '',
+    style = {}
+}) {
+    return React.createElement('div', { className: `apple-health-hero ${className}`.trim(), style },
+        label ? React.createElement('div', { className: 'apple-health-hero-label' }, label) : null,
+        React.createElement('div', { className: 'apple-health-hero-main' },
+            React.createElement('span', { className: 'apple-health-hero-value' }, value),
+            unit ? React.createElement('span', { className: 'apple-health-hero-unit' }, unit) : null
+        ),
+        sublabel ? React.createElement('div', { className: 'apple-health-hero-sub' }, sublabel) : null
+    );
+}
+
+export function AppleHealthChart({
+    data = [],
+    yLabels = ['100%', '50%', '0%'],
+    badgeTag = '总计',
+    color = '#ff9500',
+    className = '',
+    style = {}
+}) {
+    const [activeIndex, setActiveIndex] = React.useState(null);
+    const wrapperRef = React.useRef(null);
+
+    const activeItem = activeIndex !== null && data[activeIndex] ? data[activeIndex] : null;
+
+    const handlePointerMove = (e) => {
+        if (!wrapperRef.current || data.length === 0) return;
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+        const chartWidth = Math.max(rect.width - 44, 1);
+        const offsetX = Math.max(0, Math.min(clientX - rect.left, chartWidth));
+        const colWidth = chartWidth / data.length;
+        const idx = Math.min(Math.floor(offsetX / colWidth), data.length - 1);
+        setActiveIndex(idx);
+    };
+
+    const handlePointerLeave = () => {
+        setActiveIndex(null);
+    };
+
+    return React.createElement('div', {
+        ref: wrapperRef,
+        className: `apple-health-chart-wrapper ${className}`.trim(),
+        style,
+        onMouseMove: handlePointerMove,
+        onMouseLeave: handlePointerLeave,
+        onTouchStart: handlePointerMove,
+        onTouchMove: handlePointerMove,
+        onTouchEnd: handlePointerLeave
+    },
+        React.createElement('div', { className: 'apple-chart-grid-h' },
+            React.createElement('div', { className: 'apple-chart-h-line' }),
+            React.createElement('div', { className: 'apple-chart-h-line' }),
+            React.createElement('div', { className: 'apple-chart-h-line' })
+        ),
+        React.createElement('div', { className: 'apple-chart-y-labels' },
+            yLabels.map((lbl, idx) => React.createElement('span', { key: idx, className: 'apple-chart-y-label' }, lbl))
+        ),
+        React.createElement('div', { className: 'apple-chart-columns' },
+            data.map((item, idx) => {
+                const isActive = activeIndex === idx;
+                const isAnyActive = activeIndex !== null;
+                const barColor = item.color || color;
+                const barHeight = typeof item.height === 'number' ? `${Math.min(100, Math.max(4, item.height))}%` : (item.height || '0%');
+                const barOpacity = isAnyActive ? (isActive ? 1 : 0.45) : 1;
+
+                return React.createElement('div', {
+                    key: idx,
+                    className: `apple-chart-col ${isActive ? 'active' : ''}`.trim(),
+                    onClick: () => setActiveIndex(idx)
+                },
+                    React.createElement('div', { className: 'apple-chart-bar-slot' },
+                        React.createElement('div', {
+                            className: 'apple-chart-bar',
+                            style: {
+                                height: barHeight,
+                                backgroundColor: barColor,
+                                opacity: barOpacity
+                            }
+                        })
+                    ),
+                    React.createElement('span', {
+                        className: `apple-chart-x-label ${isActive ? 'active' : ''}`.trim()
+                    }, item.label)
+                );
+            })
+        ),
+        activeItem !== null ? React.createElement('div', {
+            className: 'apple-chart-scrubber-line',
+            style: {
+                left: `${((activeIndex + 0.5) / data.length) * 100 * ((wrapperRef.current ? wrapperRef.current.clientWidth - 44 : 300) / (wrapperRef.current ? wrapperRef.current.clientWidth : 300))}%`
+            }
+        }) : null,
+        activeItem !== null ? React.createElement('div', {
+            className: 'apple-chart-floating-badge'
+        },
+            React.createElement('span', { className: 'apple-chart-badge-tag' }, badgeTag),
+            React.createElement('span', { className: 'apple-chart-badge-val' },
+                activeItem.details && activeItem.details.val ? activeItem.details.val : `${activeItem.value || ''} ${activeItem.unit || ''}`.trim()
+            ),
+            React.createElement('span', { className: 'apple-chart-badge-sub' },
+                activeItem.details && activeItem.details.sub ? activeItem.details.sub : activeItem.label
+            )
+        ) : null
+    );
+}
+
 export default {
     AppleGroup,
     AppleCard,
@@ -463,5 +579,7 @@ export default {
     AppleNavBackBtn,
     AppleSpinner,
     AppleSkeleton,
-    AppleNavStack
+    AppleNavStack,
+    AppleHealthDetailHero,
+    AppleHealthChart
 };

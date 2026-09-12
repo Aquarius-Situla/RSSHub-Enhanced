@@ -130,10 +130,7 @@ export function initDeviceLayout() {
     if (document.body) document.body.classList.add('device-iphone');
   }
 
-  /* Enable immediate CSS :active pseudo-class response on iOS Safari WebKit */
-  if (typeof window !== 'undefined') {
-    window.addEventListener('touchstart', () => {}, { passive: true });
-  }
+
 
   /* Detect iOS / PWA Standalone Mode */
   const isIOSStandalone = ('standalone' in window.navigator) && window.navigator.standalone;
