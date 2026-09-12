@@ -1727,26 +1727,31 @@ html.apple-theme-light .apple-loading-overlay {
     margin-bottom: 2px;
 }
 
-.apple-health-hero {
+.apple-health-stat-value {
     display: flex;
     align-items: baseline;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    white-space: nowrap;
     line-height: 1.15;
+    gap: 3px;
 }
 
 .apple-health-hero-number {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 700;
     letter-spacing: -0.5px;
     color: var(--apple-text-primary);
+    white-space: nowrap;
+    font-feature-settings: "tnum";
 }
 
 .apple-health-hero-unit {
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 500;
     color: var(--apple-text-secondary);
-    margin-left: 3px;
-    margin-right: 6px;
+    margin-left: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Right Mini Discrete Bar Sparkline */
@@ -2695,3 +2700,85 @@ html.device-mobile .category-card:active {
   transform: none !important;
   box-shadow: none !important;
 }
+
+/* ============================================================================
+ * Apple Inset Form Inputs & macOS Terminal Log Card
+ * ============================================================================ */
+.apple-form-input {
+  flex: 1;
+  width: 100%;
+  text-align: right;
+  border: none;
+  background: transparent;
+  color: var(--apple-text-primary);
+  font-size: 14.5px;
+  font-family: var(--apple-font-mono, monospace);
+  outline: none;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.apple-form-input::placeholder {
+  color: var(--apple-text-tertiary);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.apple-terminal-card {
+  background: #1c1c1e;
+  border-radius: var(--apple-radius-card, 14px);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+
+.apple-terminal-header {
+  background: #2c2c2e;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.apple-terminal-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.apple-terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.apple-terminal-dot.dot-red { background: #ff5f56; }
+.apple-terminal-dot.dot-yellow { background: #ffbd2e; }
+.apple-terminal-dot.dot-green { background: #27c93f; }
+
+.apple-terminal-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.apple-terminal-body {
+  margin: 0;
+  padding: 14px;
+  font-family: var(--apple-font-mono, monospace);
+  font-size: 12px;
+  color: #30d158;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  background: transparent;
+}
+

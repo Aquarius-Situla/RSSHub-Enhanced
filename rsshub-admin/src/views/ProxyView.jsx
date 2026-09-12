@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import SFSymbol from '../components/SFSymbols.jsx';
+import telemetryCache from '../utils/telemetryCache.js';
 import {
   AppleGroup,
   AppleCard,
@@ -20,12 +21,15 @@ import {
   AppleNavStack
 } from '../components/AquaKit.jsx';
 
-export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
-  const [nodes, setNodes] = useState([]);
-  const [selectedNode, setSelectedNode] = useState('auto');
-  const [vpnEnabled, setVpnEnabled] = useState(true);
-  const [bypassText, setBypassText] = useState('');
-  const [loading, setLoading] = useState(true);
+export function ProxyView({t, showToast, subTab, onSelectSubTab, onBack}) {
+  const cachedNodes = telemetryCache.get('proxyNodes');
+  const cachedBypass = telemetryCache.get('bypassText');
+
+  const [nodes, setNodes] = useState(cachedNodes?.nodes || []);
+  const [selectedNode, setSelectedNode] = useState(cachedNodes?.selectedNode || 'auto');
+  const [vpnEnabled, setVpnEnabled] = useState(cachedNodes?.vpnEnabled !== false);
+  const [bypassText, setBypassText] = useState(cachedBypass || '');
+  const [loading, setLoading] = useState(!cachedNodes);
   const [switching, setSwitching] = useState(false);
   const [modalNode, setModalNode] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -50,13 +54,19 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
   const loadData = async () => {
     try {
       const [nodesRes, bypassRes] = await Promise.all([
-        fetch('api/nodes').then(r => r.json()),
-        fetch('api/bypass').then(r => r.json())
+        fetch('api/nodes').then(r => r.json()).catch(() => null),
+        fetch('api/bypass').then(r => r.json()).catch(() => null)
       ]);
-      setNodes(nodesRes.nodes || []);
-      setSelectedNode(nodesRes.selectedNode || 'auto');
-      setVpnEnabled(nodesRes.vpnEnabled !== false);
-      setBypassText(bypassRes.content || '');
+      if (nodesRes) {
+        telemetryCache.set('proxyNodes', nodesRes);
+        setNodes(nodesRes.nodes || []);
+        setSelectedNode(nodesRes.selectedNode || 'auto');
+        setVpnEnabled(nodesRes.vpnEnabled !== false);
+      }
+      if (bypassRes && bypassRes.content !== undefined) {
+        telemetryCache.set('bypassText', bypassRes.content);
+        setBypassText(bypassRes.content);
+      }
     } catch (e) {
       console.error('Failed to load proxy data:', e);
     } finally {
@@ -652,7 +662,7 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
                       key={rule || idx}
                       badge={<AppleBadge color={isIp ? 'orange' : 'indigo'} icon={<SFSymbol name={isIp ? 'network' : 'shield.fill'} size={15} />} />}
                       label={rule}
-                      sublabel={isIp ? t('CIDR IP / Local Subnet • Direct', 'CIDR IP 网段 • 直连透传') : t('Domain Suffix • Direct', '域名后缀匹配 • 直连透传')}
+                      sublabel={isIp ? t('CIDR IP / Local Subnet • Direct', 'CIDR IP 网段 · 直连透传') : t('Domain Suffix • Direct', '域名后缀匹配 · 直连透传 (绕过代理)')}
                       rightContent={
                         <AppleButton
                           variant="destructive"
@@ -744,7 +754,7 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
     <>
       <AppleNavStack
         activeSubpage={subTab}
-        onBack={() => onSelectSubTab(null)}
+        onBack={onBack || (() => onSelectSubTab(null))}
         rootView={rootView}
         subpages={{
           nodes: nodesSubpage,

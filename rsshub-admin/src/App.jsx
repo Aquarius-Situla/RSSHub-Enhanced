@@ -16,11 +16,15 @@ import Toast from './components/Toast.jsx';
 import OrientationGuard from './components/OrientationGuard.jsx';
 import SFSymbol from './components/SFSymbols.jsx';
 import { initDeviceLayout, isMobileLayout, syncStandaloneTabBar } from './utils/device-detect.js';
+import telemetryCache from './utils/telemetryCache.js';
 
 export function App() {
   /* Navigation State: 4 core tabs and drill-down subTab */
   const [activeTab, setActiveTab] = useState('home');
   const [subTab, setSubTab] = useState(null);
+
+  /* Global Navigation History Stack for cross-tab back navigation */
+  const [navStack, setNavStack] = useState([]);
 
   /* Sidebar search filter */
   const [navSearch, setNavSearch] = useState('');
@@ -147,6 +151,9 @@ export function App() {
     setTimeout(syncStandaloneTabBar, 300);
     setTimeout(syncStandaloneTabBar, 600);
 
+    /* Pre-fetch telemetry data into global SWR cache on startup */
+    telemetryCache.warmUp();
+
     return () => {
       window.removeEventListener('resize', handleSync);
       window.removeEventListener('pageshow', handleSync);
@@ -157,24 +164,37 @@ export function App() {
   /* Browser History Sync for smooth Safari back gesture handling */
   useEffect(() => {
     const handlePopState = () => {
-      if (subTab) {
+      if (navStack.length > 0) {
+        const nextStack = [...navStack];
+        const previous = nextStack.pop();
+        setNavStack(nextStack);
+        setActiveTab(previous.tab);
+        setSubTab(previous.subTab);
+      } else if (subTab) {
         setSubTab(null);
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [subTab]);
+  }, [navStack, subTab]);
 
   const handleSelectSubTab = (sub) => {
-    if (sub) {
-      window.history.pushState({ tab: activeTab, subTab: sub }, '');
+    if (sub !== subTab) {
+      setNavStack(prev => [...prev, { tab: activeTab, subTab }]);
+      setSubTab(sub);
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ tab: activeTab, subTab: sub }, '');
+      }
     }
-    setSubTab(sub);
   };
 
   const handleBack = () => {
-    if (window.history.state && window.history.state.subTab) {
-      window.history.back();
+    if (navStack.length > 0) {
+      const nextStack = [...navStack];
+      const previous = nextStack.pop();
+      setNavStack(nextStack);
+      setActiveTab(previous.tab);
+      setSubTab(previous.subTab);
     } else {
       setSubTab(null);
     }
@@ -235,8 +255,31 @@ export function App() {
 
   /* Navigation Handlers & Title Resolvers */
   const handleSelectTab = (tab, sub = null) => {
+    if (tab !== activeTab || sub !== subTab) {
+      setNavStack(prev => [...prev, { tab: activeTab, subTab }]);
+      setActiveTab(tab);
+      setSubTab(sub);
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ tab, subTab: sub }, '');
+      }
+    }
+  };
+
+  const handleBottomTabClick = (tab) => {
+    setNavStack([]);
     setActiveTab(tab);
-    setSubTab(sub);
+    setSubTab(null);
+  };
+
+  const getBackTitle = () => {
+    if (navStack.length > 0) {
+      const previous = navStack[navStack.length - 1];
+      if (previous.subTab) {
+        return getSubTabTitle(previous.subTab);
+      }
+      return getTabTitle(previous.tab);
+    }
+    return getTabTitle(activeTab);
   };
 
   const getTabTitle = (tab) => {
@@ -295,7 +338,7 @@ export function App() {
        * Mobile Top Navigation Bar (Authentic Frosted Glass Header)
        * ==================================================================== */}
       <header className="apple-top-nav">
-        {subTab !== null && (
+        {(subTab !== null || navStack.length > 0) && (
           <button
             type="button"
             className="nav-back-link"
@@ -303,7 +346,7 @@ export function App() {
             aria-label={t('Back', '返回')}
           >
             <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span>{getTabTitle(activeTab)}</span>
+            <span>{getBackTitle()}</span>
           </button>
         )}
         <h1 className="nav-title animating" key={subTab || activeTab}>
@@ -362,7 +405,7 @@ export function App() {
                 type="button"
                 data-nav-key="home"
                 className={`desktop-nav-item ${activeTab === 'home' ? 'active' : ''}`}
-                onClick={() => handleSelectTab('home')}
+                onClick={() => handleBottomTabClick('home')}
               >
                 <span className="desktop-nav-icon">
                   <SFSymbol name="house.fill" size={17} />
@@ -375,7 +418,7 @@ export function App() {
                 type="button"
                 data-nav-key="proxy"
                 className={`desktop-nav-item ${activeTab === 'proxy' ? 'active' : ''}`}
-                onClick={() => handleSelectTab('proxy')}
+                onClick={() => handleBottomTabClick('proxy')}
               >
                 <span className="desktop-nav-icon">
                   <SFSymbol name="network" size={17} />
@@ -388,7 +431,7 @@ export function App() {
                 type="button"
                 data-nav-key="data"
                 className={`desktop-nav-item ${activeTab === 'data' ? 'active' : ''}`}
-                onClick={() => handleSelectTab('data')}
+                onClick={() => handleBottomTabClick('data')}
               >
                 <span className="desktop-nav-icon">
                   <SFSymbol name="cylinder.split.1x2.fill" size={17} />
@@ -401,7 +444,7 @@ export function App() {
                 type="button"
                 data-nav-key="settings"
                 className={`desktop-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                onClick={() => handleSelectTab('settings')}
+                onClick={() => handleBottomTabClick('settings')}
               >
                 <span className="desktop-nav-icon">
                   <SFSymbol name="gearshape.fill" size={17} />
@@ -447,7 +490,7 @@ export function App() {
               aria-label={t('Back', '返回')}
             >
               <svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              <span>{t('Back to', '返回')} {getTabTitle(activeTab)}</span>
+              <span>{t('Back to', '返回')} {getBackTitle()}</span>
             </button>
           )}
 
@@ -458,6 +501,7 @@ export function App() {
               subTab={subTab}
               onSelectSubTab={handleSelectSubTab}
               onSelectTab={handleSelectTab}
+              onBack={handleBack}
               isMobile={isMobile}
             />
           )}
@@ -467,6 +511,7 @@ export function App() {
               showToast={showToast}
               subTab={subTab}
               onSelectSubTab={handleSelectSubTab}
+              onBack={handleBack}
               isMobile={isMobile}
             />
           )}
@@ -476,6 +521,7 @@ export function App() {
               showToast={showToast}
               subTab={subTab}
               onSelectSubTab={handleSelectSubTab}
+              onBack={handleBack}
               isMobile={isMobile}
             />
           )}
@@ -485,6 +531,7 @@ export function App() {
               showToast={showToast}
               subTab={subTab}
               onSelectSubTab={handleSelectSubTab}
+              onBack={handleBack}
               isMobile={isMobile}
               currentLang={langConfig}
               onLanguageChange={handleLanguageChange}
@@ -502,7 +549,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'home' ? 'active' : ''}`}
-          onClick={() => handleSelectTab('home')}
+          onClick={() => handleBottomTabClick('home')}
           aria-label={t('Home', '主页')}
         >
           <div className="apple-tab-icon">
@@ -514,7 +561,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'proxy' ? 'active' : ''}`}
-          onClick={() => handleSelectTab('proxy')}
+          onClick={() => handleBottomTabClick('proxy')}
           aria-label={t('Proxy', '代理')}
         >
           <div className="apple-tab-icon">
@@ -526,7 +573,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'data' ? 'active' : ''}`}
-          onClick={() => handleSelectTab('data')}
+          onClick={() => handleBottomTabClick('data')}
           aria-label={t('Data', '数据')}
         >
           <div className="apple-tab-icon">
@@ -538,7 +585,7 @@ export function App() {
         <button
           type="button"
           className={`apple-tab-item ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => handleSelectTab('settings')}
+          onClick={() => handleBottomTabClick('settings')}
           aria-label={t('Settings', '设置')}
         >
           <div className="apple-tab-icon">

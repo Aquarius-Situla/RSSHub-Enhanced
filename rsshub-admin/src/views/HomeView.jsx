@@ -18,11 +18,15 @@ import {
   AppleGroup,
   AppleNavStack
 } from '../components/AquaKit.jsx';
+import telemetryCache from '../utils/telemetryCache.js';
 
 export function HomeView({ t, showToast, subTab, onSelectSubTab, onSelectTab }) {
-  const [statusData, setStatusData] = useState(null);
-  const [errorCount, setErrorCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [statusData, setStatusData] = useState(() => telemetryCache.get('systemStatus'));
+  const [errorCount, setErrorCount] = useState(() => {
+    const cachedErrors = telemetryCache.get('routeErrors');
+    return cachedErrors ? cachedErrors.length : 0;
+  });
+  const [loading, setLoading] = useState(() => !telemetryCache.get('systemStatus'));
 
   const fetchDashboardData = async () => {
     try {
@@ -30,8 +34,14 @@ export function HomeView({ t, showToast, subTab, onSelectSubTab, onSelectTab }) 
         fetch('api/system/status').then(r => r.ok ? r.json() : null),
         fetch('api/routes/errors').then(r => r.ok ? r.json() : null)
       ]);
-      if (statusRes) setStatusData(statusRes);
-      if (errorRes && errorRes.errors) setErrorCount(errorRes.errors.length);
+      if (statusRes) {
+        setStatusData(statusRes);
+        telemetryCache.set('systemStatus', statusRes);
+      }
+      if (errorRes && errorRes.errors) {
+        setErrorCount(errorRes.errors.length);
+        telemetryCache.set('routeErrors', errorRes.errors);
+      }
     } catch (e) {
       console.error('Failed to load dashboard data:', e);
     } finally {
@@ -243,7 +253,7 @@ export function HomeView({ t, showToast, subTab, onSelectSubTab, onSelectTab }) 
   return (
     <AppleNavStack
       activeSubpage={subTab}
-      onBack={() => onSelectSubTab(null)}
+      onBack={onBack || (() => onSelectSubTab(null))}
       rootView={rootView}
       subpages={{
         microservices: <MicroservicesSubView t={t} showToast={showToast} />,

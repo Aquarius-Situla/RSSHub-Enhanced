@@ -159,24 +159,36 @@ export function RouteNavSubView({ t, showToast }) {
 
           <div style={{
             background: 'var(--apple-bg-input)',
-            padding: '10px 14px',
+            padding: '12px 14px',
             borderRadius: 'var(--apple-radius-control, 8px)',
             marginBottom: '8px',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '10px'
+            flexDirection: 'column',
+            gap: '8px'
           }}>
-            <span style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '12.5px', color: 'var(--apple-text-primary)', wordBreak: 'break-all' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--apple-text-secondary)' }}>
+                {t('Generated Subscription URL', '已生成的订阅链接')}
+              </span>
+              <AppleButton
+                variant="secondary"
+                size="sm"
+                onClick={handleCopyUrl}
+                style={{ flexShrink: 0 }}
+              >
+                <SFSymbol name="doc.on.doc" size={13} style={{ marginRight: '4px' }} />
+                {t('Copy', '复制')}
+              </AppleButton>
+            </div>
+            <div style={{
+              fontFamily: 'var(--apple-font-mono)',
+              fontSize: '12.5px',
+              color: 'var(--apple-text-primary)',
+              wordBreak: 'break-all',
+              lineHeight: '1.45'
+            }}>
               {formatFullUrl()}
-            </span>
-            <AppleButton
-              variant="secondary"
-              size="sm"
-              onClick={handleCopyUrl}
-            >
-              {t('Copy', '复制')}
-            </AppleButton>
+            </div>
           </div>
 
           {accessKeyData.accessKey && (

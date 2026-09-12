@@ -22,6 +22,7 @@ export function SettingsView({
   showToast,
   subTab,
   onSelectSubTab,
+  onBack,
   isMobile,
   currentLang,
   onLanguageChange,
@@ -263,7 +264,7 @@ export function SettingsView({
   return (
     <AppleNavStack
       activeSubpage={subTab}
-      onBack={() => onSelectSubTab(null)}
+      onBack={onBack || (() => onSelectSubTab(null))}
       rootView={rootView}
       subpages={{
         lang: langSubpage,

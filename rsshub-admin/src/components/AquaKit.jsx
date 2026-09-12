@@ -206,7 +206,7 @@ export function AppleHealthCard({
         React.createElement('div', { className: 'apple-health-body' },
             React.createElement('div', { className: 'apple-health-stat' },
                 statLabel ? React.createElement('span', { className: 'apple-health-stat-label' }, statLabel) : null,
-                React.createElement('div', { className: 'apple-health-hero' },
+                React.createElement('div', { className: 'apple-health-stat-value' },
                     React.createElement('span', { className: 'apple-health-hero-number' }, heroNumber),
                     heroUnit ? React.createElement('span', { className: 'apple-health-hero-unit' }, heroUnit) : null
                 )
