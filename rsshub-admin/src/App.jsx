@@ -234,9 +234,9 @@ export function App() {
   };
 
   /* Navigation Handlers & Title Resolvers */
-  const handleSelectTab = (tab) => {
+  const handleSelectTab = (tab, sub = null) => {
     setActiveTab(tab);
-    setSubTab(null);
+    setSubTab(sub);
   };
 
   const getTabTitle = (tab) => {
@@ -251,6 +251,7 @@ export function App() {
 
   const getSubTabTitle = (sub) => {
     switch (sub) {
+      case 'microservices': return t('Microservices Cluster', '微服务集群');
       case 'overview': return t('System Overview', '运行概览');
       case 'routes': return t('Route Navigator', '路由导航');
       case 'errors': return t('Error Diagnostics', '故障监控');
@@ -456,6 +457,7 @@ export function App() {
               showToast={showToast}
               subTab={subTab}
               onSelectSubTab={handleSelectSubTab}
+              onSelectTab={handleSelectTab}
               isMobile={isMobile}
             />
           )}

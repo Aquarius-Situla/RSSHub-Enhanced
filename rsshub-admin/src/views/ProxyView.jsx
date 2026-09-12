@@ -16,6 +16,7 @@ import {
   AppleBadge,
   AppleButton,
   AppleSwitch,
+  AppleSegmentedControl,
   AppleNavStack
 } from '../components/AquaKit.jsx';
 
@@ -30,6 +31,11 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [pings, setPings] = useState({});
   const [savingBypass, setSavingBypass] = useState(false);
+
+  /* Apple Inset Grouped Bypass Subpage States */
+  const [bypassViewMode, setBypassViewMode] = useState('rules');
+  const [isAddRuleModalOpen, setIsAddRuleModalOpen] = useState(false);
+  const [newRuleInput, setNewRuleInput] = useState('');
 
   /* Add Node Form State */
   const [newNodeUrl, setNewNodeUrl] = useState('');
@@ -276,15 +282,74 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
     }
   };
 
-  const insertBypassPreset = (presetText) => {
-    const current = bypassText.trim();
-    if (current.includes(presetText.trim())) {
-      showToast(t('Preset rules already present', '预设规则已存在'));
-      return;
+  const handleTogglePresetGroup = async (preset) => {
+    const existing = bypassText.split('\n').map(l => l.trim()).filter(Boolean);
+    const allPresent = preset.rules.every(r => existing.includes(r));
+
+    let updated;
+    if (allPresent) {
+      /* Remove all preset rules from bypass */
+      updated = existing.filter(l => !preset.rules.includes(l)).join('\n');
+      showToast(`${t('Removed preset:', '已移除预设:')} ${preset.title}`);
+    } else {
+      /* Append missing preset rules */
+      const missing = preset.rules.filter(r => !existing.includes(r));
+      updated = existing.length ? `${existing.join('\n')}\n${missing.join('\n')}` : missing.join('\n');
+      showToast(`${t('Added preset:', '已启用预设:')} ${preset.title}`);
     }
-    const updated = current ? `${current}\n\n# --- Preset Rules ---\n${presetText}` : presetText;
     setBypassText(updated);
-    showToast(t('Preset rules added to editor', '预设规则已追加到编辑器'));
+    try {
+      await fetch('api/bypass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: updated })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteRule = async (ruleToDelete) => {
+    const lines = bypassText.split('\n');
+    const updated = lines.filter(line => line.trim() !== ruleToDelete.trim()).join('\n');
+    setBypassText(updated);
+    try {
+      await fetch('api/bypass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: updated })
+      });
+      showToast(`${t('Removed rule:', '已移除规则:')} ${ruleToDelete}`);
+    } catch (err) {
+      showToast(t('Failed to delete rule', '移除规则失败'));
+    }
+  };
+
+  const handleAddRuleSubmit = async () => {
+    if (!newRuleInput.trim()) return;
+    const linesToAdd = newRuleInput
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith('#'));
+
+    const existing = bypassText.trim();
+    const toAppend = linesToAdd.join('\n');
+    const updated = existing ? `${existing}\n${toAppend}` : toAppend;
+
+    setBypassText(updated);
+    setNewRuleInput('');
+    setIsAddRuleModalOpen(false);
+
+    try {
+      await fetch('api/bypass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: updated })
+      });
+      showToast(t(`Added ${linesToAdd.length} rules successfully!`, `成功添加 ${linesToAdd.length} 条分流规则！`));
+    } catch (err) {
+      showToast(t('Failed to save rules', '保存分流规则失败'));
+    }
   };
 
   /* ==========================================================================
@@ -493,59 +558,185 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
   );
 
   /* ==========================================================================
-   * Subpage: Direct Routing Whitelist (bypass.txt)
+   * Subpage: Direct Routing Whitelist (bypass.txt) — Apple HIG Redesign
    * ========================================================================== */
+  const activeBypassRules = bypassText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#'));
+
+  const PRESETS = [
+    {
+      id: 'media',
+      title: t('Domestic Media Streaming', '国内主流音视频与媒体'),
+      desc: 'Bilibili, 微博, 优酷, 爱奇艺, 腾讯视频',
+      icon: 'play.tv.fill',
+      badge: 'blue',
+      rules: ['.bilibili.com', '.bilivideo.com', '.hdslb.com', '.weibo.com', '.weibo.cn', '.sinaimg.cn', '.youku.com', '.iqiyi.com']
+    },
+    {
+      id: 'lan',
+      title: t('LAN & Private IP Subnets', '局域网与私有 IP (RFC 1918)'),
+      desc: '127.0.0.1, localhost, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16',
+      icon: 'house.fill',
+      badge: 'green',
+      rules: ['127.0.0.1', 'localhost', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']
+    },
+    {
+      id: 'dev',
+      title: t('Developer Public Mirrors', '开发者与公共镜像加速'),
+      desc: 'GitHub 静态资源, npm 镜像, jsDelivr CDN',
+      icon: 'network',
+      badge: 'purple',
+      rules: ['.github.com', '.githubusercontent.com', '.npmjs.org', '.jsdelivr.net']
+    }
+  ];
+
   const bypassSubpage = (
     <div className="fade-in" style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <AppleButton
-            variant="secondary"
-            size="sm"
-            onClick={() => insertBypassPreset('.bilibili.com\n.bilivideo.com\n.hdslb.com')}
-          >
-            + Bilibili
-          </AppleButton>
-          <AppleButton
-            variant="secondary"
-            size="sm"
-            onClick={() => insertBypassPreset('.weibo.com\n.weibo.cn\n.sinaimg.cn')}
-          >
-            + 微博
-          </AppleButton>
-          <AppleButton
-            variant="secondary"
-            size="sm"
-            onClick={() => insertBypassPreset('127.0.0.1\n10.0.0.0/8\n172.16.0.0/12\n192.168.0.0/16')}
-          >
-            + 局域网/内网
-          </AppleButton>
-        </div>
-
-        <AppleButton
-          variant="primary"
-          size="sm"
-          onClick={handleSaveBypass}
-          disabled={savingBypass}
-        >
-          {savingBypass ? t('Saving...', '保存中...') : t('Save Rules', '保存规则')}
-        </AppleButton>
+      {/* 1. Top Segmented Control (Apple HIG 2-segment switcher) */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        <AppleSegmentedControl
+          value={bypassViewMode}
+          onChange={setBypassViewMode}
+          options={[
+            { label: t('Rule List', '结构化规则'), value: 'rules' },
+            { label: t('Raw bypass.txt', '原始文件 (bypass.txt)'), value: 'raw' }
+          ]}
+        />
       </div>
 
-      <AppleGroup header={`bypass.txt (${bypassText.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length} ${t('Active Rules', '条有效规则')})`}>
-        <AppleCard style={{ padding: '16px' }}>
-          <textarea
-            className="ios-textarea"
-            rows={12}
-            value={bypassText}
-            onChange={e => setBypassText(e.target.value)}
-            placeholder={t('# Enter IP CIDR or domain rules (one per line)...\n# E.g.:\n127.0.0.1\n.bilibili.com\n.weibo.com', '# 每行输入一个直连域名或 IP 段规则...\n# 例如:\n127.0.0.1\n.bilibili.com\n.weibo.com')}
-          />
-          <div style={{ marginTop: '10px', fontSize: '12.5px', color: 'var(--apple-text-secondary)' }}>
-            💡 {t('Any request matching rules in bypass.txt will connect directly without routing through Gost proxy nodes.', '包含在 bypass.txt 中的域名或 IP 将不经由代理节点，直接发起请求。')}
-          </div>
-        </AppleCard>
-      </AppleGroup>
+      {bypassViewMode === 'rules' ? (
+        <>
+          {/* Section 1: Preset Whitelist Packs */}
+          <AppleGroup header={t('Preset Whitelist Packs', '常用快捷分流包 (PRESET PACKS)')}>
+            <AppleCard>
+              {PRESETS.map((p, idx) => {
+                const existing = bypassText.split('\n').map(l => l.trim()).filter(Boolean);
+                const isEnabled = p.rules.every(r => existing.includes(r));
+                const isPartial = !isEnabled && p.rules.some(r => existing.includes(r));
+
+                return (
+                  <AppleRow
+                    key={p.id || idx}
+                    badge={<AppleBadge color={p.badge} icon={<SFSymbol name={p.icon} size={16} />} />}
+                    label={p.title}
+                    sublabel={p.desc}
+                    rightContent={
+                      <AppleButton
+                        variant={isEnabled ? 'tinted' : 'secondary'}
+                        size="sm"
+                        onClick={() => handleTogglePresetGroup(p)}
+                      >
+                        {isEnabled ? t('✓ Enabled', '✓ 已启用') : isPartial ? t('+ Add All', '+ 补全') : t('+ Add', '+ 启用')}
+                      </AppleButton>
+                    }
+                  />
+                );
+              })}
+            </AppleCard>
+          </AppleGroup>
+
+          {/* Section 2: Active Direct Rules List */}
+          <AppleGroup header={`${t('Active Bypass Rules', '已生效直连规则')} (${activeBypassRules.length} ${t('Rules', '条')})`}>
+            <AppleCard>
+              {activeBypassRules.length === 0 ? (
+                <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--apple-text-secondary)', fontSize: '13.5px' }}>
+                  {t('No direct rules configured. Tap "Add Bypass Rule..." below.', '暂无分流规则。请点击下方「添加分流规则...」添加。')}
+                </div>
+              ) : (
+                activeBypassRules.map((rule, idx) => {
+                  const isIp = /^(\d{1,3}\.){3}\d{1,3}/.test(rule) || rule.includes('/') || rule === 'localhost';
+                  return (
+                    <AppleRow
+                      key={rule || idx}
+                      badge={<AppleBadge color={isIp ? 'orange' : 'indigo'} icon={<SFSymbol name={isIp ? 'network' : 'shield.fill'} size={15} />} />}
+                      label={rule}
+                      sublabel={isIp ? t('CIDR IP / Local Subnet • Direct', 'CIDR IP 网段 • 直连透传') : t('Domain Suffix • Direct', '域名后缀匹配 • 直连透传')}
+                      rightContent={
+                        <AppleButton
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteRule(rule)}
+                          title={t('Delete Rule', '移除此规则')}
+                        >
+                          {t('Delete', '删除')}
+                        </AppleButton>
+                      }
+                    />
+                  );
+                })
+              )}
+              {/* Bottom Action Row: Add Bypass Rule */}
+              <div
+                className="apple-vpn-action-row"
+                style={{ borderTop: activeBypassRules.length > 0 ? '0.5px solid var(--apple-divider)' : 'none' }}
+                onClick={() => setIsAddRuleModalOpen(true)}
+              >
+                + {t('Add Bypass Rule...', '添加分流规则...')}
+              </div>
+            </AppleCard>
+          </AppleGroup>
+        </>
+      ) : (
+        /* Section: Raw bypass.txt Monospace Editor */
+        <AppleGroup header={`bypass.txt (${activeBypassRules.length} ${t('Active Rules', '条有效规则')})`}>
+          <AppleCard style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '12.5px', color: 'var(--apple-text-secondary)' }}>
+                {t('One rule per line (domains starting with dot match all subdomains)', '每行一条规则，点号开头的域名匹配其全部子域名')}
+              </span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <AppleButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(bypassText);
+                    showToast(t('Copied bypass.txt to clipboard!', '已复制 bypass.txt 到剪贴板！'));
+                  }}
+                >
+                  {t('Copy', '复制')}
+                </AppleButton>
+                <AppleButton
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveBypass}
+                  disabled={savingBypass}
+                >
+                  {savingBypass ? t('Saving...', '保存中...') : t('Save Rules', '保存规则')}
+                </AppleButton>
+              </div>
+            </div>
+
+            <textarea
+              className="ios-textarea"
+              rows={14}
+              style={{
+                fontFamily: 'var(--apple-font-mono)',
+                fontSize: '13px',
+                lineHeight: '1.6',
+                background: 'var(--apple-bg-input)',
+                borderRadius: '8px',
+                padding: '12px',
+                border: 'none',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+              value={bypassText}
+              onChange={e => setBypassText(e.target.value)}
+              placeholder={t('# Enter IP CIDR or domain rules (one per line)...\n127.0.0.1\n.bilibili.com\n.weibo.com', '# 每行输入一个直连域名或 IP 段规则...\n127.0.0.1\n.bilibili.com\n.weibo.com')}
+            />
+          </AppleCard>
+        </AppleGroup>
+      )}
+
+      {/* 4. Apple HIG Caption Footer */}
+      <div className="apple-vpn-footer" style={{ padding: '8px 16px 24px 16px' }}>
+        {t(
+          'Bypass rules control direct network routing. Matching domains or IP ranges will bypass the Gost proxy and connect directly.',
+          '分流规则用于控制某些特定网络流量的路由。命中上述白名单的域名或 IP 段在发起网络请求时将自动绕过 Gost 代理，由本地网络直连访问。'
+        )}
+      </div>
     </div>
   );
 
@@ -808,6 +999,63 @@ export function ProxyView({ t, showToast, subTab, onSelectSubTab }) {
                 onClick={handleAddNewNode}
               >
                 {t('Add Node', '添加节点')}
+              </AppleButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================
+       * Modal Sheet: Add Bypass Rule
+       * ====================================================================== */}
+      {isAddRuleModalOpen && (
+        <div className="apple-modal-overlay" onClick={() => setIsAddRuleModalOpen(false)}>
+          <div className="apple-modal-dialog" onClick={e => e.stopPropagation()}>
+            <div className="apple-modal-header">
+              <h3 className="apple-modal-title">{t('Add Bypass Rule', '添加直连分流规则')}</h3>
+              <button
+                type="button"
+                className="apple-modal-close-btn"
+                onClick={() => setIsAddRuleModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="apple-modal-body">
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--apple-text-secondary)', marginBottom: '5px' }}>
+                  {t('Domain or IP CIDR (Support multi-line paste)', '域名或 IP 网段 (支持批量粘贴多行)')}
+                </label>
+                <textarea
+                  className="ios-textarea"
+                  rows={6}
+                  style={{ fontFamily: 'var(--apple-font-mono)', fontSize: '13px', width: '100%', boxSizing: 'border-box' }}
+                  value={newRuleInput}
+                  onChange={e => setNewRuleInput(e.target.value)}
+                  placeholder={t('.example.com\n192.168.1.0/24', '.example.com\n192.168.1.0/24')}
+                />
+                <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--apple-text-secondary)', lineHeight: '1.4' }}>
+                  {t('Tips: Starting with a dot (e.g. .bilibili.com) will match all subdomains.', '提示：以点号开头的域名（例如 .bilibili.com）将自动匹配其全部二级与三级子域名。')}
+                </div>
+              </div>
+            </div>
+
+            <div className="apple-modal-footer">
+              <AppleButton
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsAddRuleModalOpen(false)}
+              >
+                {t('Cancel', '取消')}
+              </AppleButton>
+              <AppleButton
+                variant="primary"
+                size="sm"
+                onClick={handleAddRuleSubmit}
+                disabled={!newRuleInput.trim()}
+              >
+                {t('Add & Apply', '添加并生效')}
               </AppleButton>
             </div>
           </div>

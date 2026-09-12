@@ -215,7 +215,11 @@ export function AppleHealthCard({
                 bars.map((bar, idx) => React.createElement('div', {
                     key: idx,
                     className: `apple-health-bar ${bar.active ? 'is-active' : ''}`,
-                    style: { height: `${bar.height || 24}px` }
+                    style: {
+                        height: `${bar.height || 24}px`,
+                        ...(bar.color ? { backgroundColor: bar.color } : {})
+                    },
+                    title: bar.title || ''
                 }))
             ) : null
         )
